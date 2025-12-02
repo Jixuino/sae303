@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8">
+    <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
+    
+    <style>
+      /* Style du bouton Retour */
+      .bouton-retour {
+        position: fixed; /* Fixé à l'écran */
+        top: 20px;
+        left: 20px;
+        z-index: 1000; /* Au-dessus de la 3D */
+        padding: 12px 24px;
+        background-color: #333;
+        color: white;
+        text-decoration: none;
+        font-family: sans-serif;
+        border-radius: 8px;
+        font-weight: bold;
+        opacity: 0.8;
+      }
+      .bouton-retour:hover {
+        background-color: #555;
+      }
+    </style>
+  </head>
+  <body>
+
+    <a href="index.html" class="bouton-retour">⬅ Retour au menu</a>
+
+    <a-scene>
+      <a-assets>
+        <img id="img1" src="scenes/1.png">
+      </a-assets>
+
+      <a-sky color="#ECECEC"></a-sky>
+      
+      <a-image src="#img1" position="0 1.6 -3" scale="2 2 2"></a-image>
+
+      <a-camera position="0 1.6 0"><a-cursor></a-cursor></a-camera>
+    </a-scene>
+  </body>
+</html>
