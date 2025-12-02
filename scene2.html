@@ -1,81 +1,116 @@
 <!DOCTYPE html>
 <html lang="fr">
-  <head>
+<head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Scene 2 - Evolution Apprentis</title>
-    
+    <title>Scène 2 - L'Invasion des Apprentis</title>
     <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
-    
+
+    <script>
+      // --- COMPOSANT GÉNÉRATEUR DE FOULE ---
+      // Ce script crée automatiquement des avatars basiques (cônes) dans une zone donnée.
+      AFRAME.registerComponent('population-generator', {
+        schema: {
+          count: {type: 'int', default: 10},    // Nombre d'avatars
+          zStart: {type: 'number', default: 0},  // Début de la zone en profondeur
+          zEnd: {type: 'number', default: -10}, // Fin de la zone
+          widthSpread: {type: 'number', default: 10}, // Écartement sur les côtés (X)
+          color: {type: 'color', default: '#FFF'}, // Couleur de la foule
+          minHeight: {type: 'number', default: 1.6}, // Taille min
+          maxHeight: {type: 'number', default: 1.9}  // Taille max (pour varier)
+        },
+        init: function() {
+          let data = this.data;
+          let scene = this.el.sceneEl;
+
+          for (let i = 0; i < data.count; i++) {
+            // Création de l'entité avatar
+            let avatar = document.createElement('a-entity');
+            
+            // Calcul de position aléatoire dans la zone définie
+            // Math.random() donne un chiffre entre 0 et 1
+            let posX = (Math.random() - 0.5) * data.widthSpread; // Réparti à gauche et à droite du centre
+            let posZ = data.zStart + Math.random() * (data.zEnd - data.zStart);
+            // Hauteur aléatoire pour varier les "gens"
+            let height = data.minHeight + Math.random() * (data.maxHeight - data.minHeight);
+
+            // Configuration de la forme (Cône simple pour la performance)
+            avatar.setAttribute('geometry', {
+                primitive: 'cone',
+                radiusBottom: 0.4,
+                radiusTop: 0.1, // Un peu pointu pour faire une "tête"
+                height: height
+            });
+            
+            // Positionner le bas du cône au niveau du sol (y = height / 2)
+            avatar.setAttribute('position', {x: posX, y: height / 2, z: posZ});
+            
+            avatar.setAttribute('material', {color: data.color, roughness: 0.8});
+            
+            // Ajouter une ombre portée (optionnel, peut coûter en performance)
+            // avatar.setAttribute('shadow', {cast: true, receive: false});
+
+            // Ajouter l'avatar à l'entité qui contient le générateur
+            this.el.appendChild(avatar);
+          }
+        }
+      });
+    </script>
+
     <style>
-      /* Style du bouton Retour (Identique à la scène 1) */
       .bouton-retour {
-        position: fixed;
-        top: 20px;
-        left: 20px;
-        z-index: 1000;
-        padding: 12px 24px;
-        background-color: #333;
-        color: white;
-        text-decoration: none;
-        font-family: sans-serif;
-        border-radius: 8px;
-        font-weight: bold;
-        opacity: 0.9;
-        transition: 0.3s;
+        position: fixed; top: 20px; left: 20px; z-index: 1000;
+        padding: 12px 24px; background-color: #333; color: white;
+        text-decoration: none; font-family: sans-serif; border-radius: 8px; font-weight: bold; opacity: 0.9;
       }
-      .bouton-retour:hover {
-        background-color: #555;
-      }
+      .bouton-retour:hover { background-color: #555; }
+      .hint { position: fixed; bottom: 20px; width: 100%; text-align: center; color: #FFF; font-family: sans-serif; pointer-events: none; text-shadow: 1px 1px 2px black;}
     </style>
-  </head>
-  <body>
+</head>
+<body>
 
     <a href="index.html" class="bouton-retour">⬅ Retour au menu</a>
+    <div class="hint">Avancez dans le temps...</div>
 
-    <a-scene>
+    <a-scene background="color: #111" fog="type: linear; color: #111; near: 5; far: 60">
+
+      <a-entity light="type: ambient; intensity: 0.2; color: #CCC"></a-entity>
+      <a-entity light="type: spot; intensity: 0.8; angle: 60; penumbra: 0.5; distance: 40; castShadow: true" position="0 5 0" rotation="-20 0 0"></a-entity>
+
+      <a-plane rotation="-90 0 0" width="20" height="200" color="#222" roughness="0.9" position="0 0 -90"></a-plane>
+      <a-plane rotation="-90 0 0" width="0.2" height="200" color="#555" position="0 0.01 -90"></a-plane>
+
+      <a-text value="2015" position="0 0.1 -5" rotation="-90 0 0" align="center" color="#FFF" scale="3 3 3"></a-text>
+      <a-text value="78 Apprentis" position="0 0.1 -7" rotation="-90 0 0" align="center" color="#aaa" scale="1.5 1.5 1.5"></a-text>
       
-      <a-sky color="#dbeeff"></a-sky>
-
-      <a-entity light="type: ambient; intensity: 0.8"></a-entity>
-      <a-entity light="type: directional; intensity: 0.6" position="-1 1 1"></a-entity>
-
-      <a-plane rotation="-90 0 0" width="40" height="20" color="#EEE"></a-plane>
-
-      <a-text value="2015 : 78 apprentis" position="-10 3 -5" color="black" align="center" scale="1.5 1.5 1.5"></a-text>
-      
-      <a-entity position="-10 0 -5">
-        <a-entity geometry="primitive: cone; radiusBottom: 0.5; height: 1" position="0 0.5 0" color="#7BC8A4"></a-entity>
-        <a-entity geometry="primitive: cone; radiusBottom: 0.5; height: 1" position="2 0.5 1" color="#7BC8A4"></a-entity>
-        <a-entity geometry="primitive: cone; radiusBottom: 0.5; height: 1" position="-2 0.5 1" color="#7BC8A4"></a-entity>
+      <a-entity position="0 0 0" 
+                population-generator="count: 15; zStart: -10; zEnd: -30; widthSpread: 15; color: #7BC8A4;">
       </a-entity>
 
-      <a-text value="2020 : 153 apprentis" position="0 3 -5" color="black" align="center" scale="1.5 1.5 1.5"></a-text>
-      
-      <a-entity position="0 0 -5">
-        <a-entity geometry="primitive: cone; radiusBottom: 0.5; height: 1" position="0 0.5 0" color="#FFC65D"></a-entity>
-        <a-entity geometry="primitive: cone; radiusBottom: 0.5; height: 1" position="1 0.5 1" color="#FFC65D"></a-entity>
-        <a-entity geometry="primitive: cone; radiusBottom: 0.5; height: 1" position="-1 0.5 1" color="#FFC65D"></a-entity>
-        <a-entity geometry="primitive: cone; radiusBottom: 0.5; height: 1" position="2 0.5 0" color="#FFC65D"></a-entity>
-        <a-entity geometry="primitive: cone; radiusBottom: 0.5; height: 1" position="-2 0.5 0" color="#FFC65D"></a-entity>
+
+      <a-text value="2020" position="0 0.1 -40" rotation="-90 0 0" align="center" color="#FFF" scale="3 3 3"></a-text>
+      <a-text value="153 Apprentis" position="0 0.1 -42" rotation="-90 0 0" align="center" color="#aaa" scale="1.5 1.5 1.5"></a-text>
+
+      <a-entity position="0 0 0" 
+                population-generator="count: 60; zStart: -45; zEnd: -65; widthSpread: 12; color: #FFC65D;">
       </a-entity>
 
-      <a-text value="2025 : 928 apprentis" position="10 3 -5" color="black" align="center" scale="1.5 1.5 1.5"></a-text>
-      
-      <a-entity position="10 0 -5">
-        <a-entity geometry="primitive: cone; radiusBottom: 0.5; height: 1" position="0 0.5 0" color="#EF2D5E"></a-entity>
-        <a-entity geometry="primitive: cone; radiusBottom: 0.5; height: 1" position="1 0.5 1" color="#EF2D5E"></a-entity>
-        <a-entity geometry="primitive: cone; radiusBottom: 0.5; height: 1" position="-1 0.5 1" color="#EF2D5E"></a-entity>
-        <a-entity geometry="primitive: cone; radiusBottom: 0.5; height: 1" position="2 0.5 1" color="#EF2D5E"></a-entity>
-        <a-entity geometry="primitive: cone; radiusBottom: 0.5; height: 1" position="-2 0.5 -1" color="#EF2D5E"></a-entity>
-        <a-entity geometry="primitive: cone; radiusBottom: 0.5; height: 1" position="1.5 0.5 -1.5" color="#EF2D5E"></a-entity>
-        <a-entity geometry="primitive: cone; radiusBottom: 0.5; height: 1" position="-1.5 0.5 -1.5" color="#EF2D5E"></a-entity>
-        <a-entity geometry="primitive: cone; radiusBottom: 0.5; height: 1" position="0 0.5 2" color="#EF2D5E"></a-entity>
-        <a-entity geometry="primitive: cone; radiusBottom: 0.5; height: 1" position="-3 0.5 0" color="#EF2D5E"></a-entity>
+
+      <a-text value="2025" position="0 0.1 -75" rotation="-90 0 0" align="center" color="#F00" scale="4 4 4"></a-text>
+      <a-text value="928 APPRENTIS !" position="0 0.1 -77" rotation="-90 0 0" align="center" color="#F00" scale="2 2 2"></a-text>
+
+      <a-entity position="0 0 0" 
+                population-generator="count: 400; zStart: -80; zEnd: -120; widthSpread: 5; color: #D7263D; minHeight: 1.5; maxHeight: 2.1">
+      </a-entity>
+      <a-entity position="0 0 0" 
+                population-generator="count: 200; zStart: -80; zEnd: -120; widthSpread: 25; color: #A0152B;">
       </a-entity>
 
-      <a-entity camera look-controls position="0 3 10"></a-entity>
+
+      <a-entity camera look-controls wasd-controls="acceleration: 150" position="0 1.6 2">
+          <a-entity light="type: point; intensity: 0.1; distance: 5; color: red" position="0 0 0"></a-entity>
+      </a-entity>
 
     </a-scene>
-  </body>
+</body>
 </html>
