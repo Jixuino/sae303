@@ -2,15 +2,16 @@
 <html lang="fr">
   <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
     
     <style>
       /* Style du bouton Retour */
       .bouton-retour {
-        position: fixed; /* Fixé à l'écran */
+        position: fixed;
         top: 20px;
         left: 20px;
-        z-index: 1000; /* Au-dessus de la 3D */
+        z-index: 1000;
         padding: 12px 24px;
         background-color: #333;
         color: white;
@@ -18,7 +19,8 @@
         font-family: sans-serif;
         border-radius: 8px;
         font-weight: bold;
-        opacity: 0.8;
+        opacity: 0.9;
+        transition: 0.3s;
       }
       .bouton-retour:hover {
         background-color: #555;
@@ -29,16 +31,41 @@
 
     <a href="index.html" class="bouton-retour">⬅ Retour au menu</a>
 
-    <a-scene>
-      <a-assets>
-        <img id="img1" src="scenes/1.png">
-      </a-assets>
+    <a-scene background="color: #ECECEC">
 
-      <a-sky color="#ECECEC"></a-sky>
+      <a-entity light="type: ambient; intensity: 0.6"></a-entity>
+      <a-entity light="type: directional; intensity: 0.8" position="1 1 1"></a-entity>
+
+      <a-plane rotation="-90 0 0" width="30" height="30" color="#e6e6e6"></a-plane>
+
+      <a-box position="-6 5.78 0" depth="1" width="1" height="11.56" color="#4cc3d9">
+        <a-text value="Medical : 1156" position="0 6 1" align="center" color="black" scale="2 2 2"></a-text>
+      </a-box>
+
+      <a-box position="-4 4.7 0" depth="1" width="1" height="9.40" color="#FFC65D">
+        <a-text value="Commerce : 940" position="0 5 1" align="center" color="black" scale="2 2 2"></a-text>
+      </a-box>
+
+      <a-box position="-2 2.42 0" depth="1" width="1" height="4.84" color="#7BC8A4">
+        <a-text value="Numerique : 484" position="0 3 1" align="center" color="black" scale="2 2 2"></a-text>
+      </a-box>
+
+      <a-box position="0 0.38 0" depth="1" width="1" height="0.76" color="#F16745">
+        <a-text value="Tourisme : 76" position="0 1 1" align="center" color="black" scale="2 2 2"></a-text>
+      </a-box>
+
+      <a-box position="2 0.085 0" depth="1" width="1" height="0.17" color="#D7263D">
+        <a-text value="Art : 17" position="0 1 1" align="center" color="black" scale="2 2 2"></a-text>
+      </a-box>
+
+      <a-box position="4 0.045 0" depth="1" width="1" height="0.09" color="#8E44AD">
+        <a-text value="Logistique : 9" position="0 1 1" align="center" color="black" scale="2 2 2"></a-text>
+      </a-box>
+
+      <a-entity camera look-controls position="0 5 12"></a-entity>
       
-      <a-image src="#img1" position="0 1.6 -3" scale="2 2 2"></a-image>
+      <a-sky color="#dbeeff"></a-sky>
 
-      <a-camera position="0 1.6 0"><a-cursor></a-cursor></a-camera>
     </a-scene>
   </body>
 </html>

@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Scene 2 - Evolution Apprentis</title>
+    
+    <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
+    
+    <style>
+      /* Style du bouton Retour (Identique à la scène 1) */
+      .bouton-retour {
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        z-index: 1000;
+        padding: 12px 24px;
+        background-color: #333;
+        color: white;
+        text-decoration: none;
+        font-family: sans-serif;
+        border-radius: 8px;
+        font-weight: bold;
+        opacity: 0.9;
+        transition: 0.3s;
+      }
+      .bouton-retour:hover {
+        background-color: #555;
+      }
+    </style>
+  </head>
+  <body>
+
+    <a href="index.html" class="bouton-retour">⬅ Retour au menu</a>
+
+    <a-scene>
+      
+      <a-sky color="#dbeeff"></a-sky>
+
+      <a-entity light="type: ambient; intensity: 0.8"></a-entity>
+      <a-entity light="type: directional; intensity: 0.6" position="-1 1 1"></a-entity>
+
+      <a-plane rotation="-90 0 0" width="40" height="20" color="#EEE"></a-plane>
+
+      <a-text value="2015 : 78 apprentis" position="-10 3 -5" color="black" align="center" scale="1.5 1.5 1.5"></a-text>
+      
+      <a-entity position="-10 0 -5">
+        <a-entity geometry="primitive: cone; radiusBottom: 0.5; height: 1" position="0 0.5 0" color="#7BC8A4"></a-entity>
+        <a-entity geometry="primitive: cone; radiusBottom: 0.5; height: 1" position="2 0.5 1" color="#7BC8A4"></a-entity>
+        <a-entity geometry="primitive: cone; radiusBottom: 0.5; height: 1" position="-2 0.5 1" color="#7BC8A4"></a-entity>
+      </a-entity>
+
+      <a-text value="2020 : 153 apprentis" position="0 3 -5" color="black" align="center" scale="1.5 1.5 1.5"></a-text>
+      
+      <a-entity position="0 0 -5">
+        <a-entity geometry="primitive: cone; radiusBottom: 0.5; height: 1" position="0 0.5 0" color="#FFC65D"></a-entity>
+        <a-entity geometry="primitive: cone; radiusBottom: 0.5; height: 1" position="1 0.5 1" color="#FFC65D"></a-entity>
+        <a-entity geometry="primitive: cone; radiusBottom: 0.5; height: 1" position="-1 0.5 1" color="#FFC65D"></a-entity>
+        <a-entity geometry="primitive: cone; radiusBottom: 0.5; height: 1" position="2 0.5 0" color="#FFC65D"></a-entity>
+        <a-entity geometry="primitive: cone; radiusBottom: 0.5; height: 1" position="-2 0.5 0" color="#FFC65D"></a-entity>
+      </a-entity>
+
+      <a-text value="2025 : 928 apprentis" position="10 3 -5" color="black" align="center" scale="1.5 1.5 1.5"></a-text>
+      
+      <a-entity position="10 0 -5">
+        <a-entity geometry="primitive: cone; radiusBottom: 0.5; height: 1" position="0 0.5 0" color="#EF2D5E"></a-entity>
+        <a-entity geometry="primitive: cone; radiusBottom: 0.5; height: 1" position="1 0.5 1" color="#EF2D5E"></a-entity>
+        <a-entity geometry="primitive: cone; radiusBottom: 0.5; height: 1" position="-1 0.5 1" color="#EF2D5E"></a-entity>
+        <a-entity geometry="primitive: cone; radiusBottom: 0.5; height: 1" position="2 0.5 1" color="#EF2D5E"></a-entity>
+        <a-entity geometry="primitive: cone; radiusBottom: 0.5; height: 1" position="-2 0.5 -1" color="#EF2D5E"></a-entity>
+        <a-entity geometry="primitive: cone; radiusBottom: 0.5; height: 1" position="1.5 0.5 -1.5" color="#EF2D5E"></a-entity>
+        <a-entity geometry="primitive: cone; radiusBottom: 0.5; height: 1" position="-1.5 0.5 -1.5" color="#EF2D5E"></a-entity>
+        <a-entity geometry="primitive: cone; radiusBottom: 0.5; height: 1" position="0 0.5 2" color="#EF2D5E"></a-entity>
+        <a-entity geometry="primitive: cone; radiusBottom: 0.5; height: 1" position="-3 0.5 0" color="#EF2D5E"></a-entity>
+      </a-entity>
+
+      <a-entity camera look-controls position="0 3 10"></a-entity>
+
+    </a-scene>
+  </body>
+</html>
