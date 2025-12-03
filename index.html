@@ -23,7 +23,7 @@
             let posX = (Math.random() - 0.5) * data.widthSpread;
             let posZ = data.zStart + Math.random() * (data.zEnd - data.zStart);
             
-            // Note: On garde Y=0 ici, on bougera le groupe entier dans le HTML
+            // Position de base
             avatar.setAttribute('position', {x: posX, y: 0, z: posZ});
             avatar.setAttribute('gltf-model', '#student-model');
             avatar.setAttribute('scale', data.modelScale);
@@ -36,7 +36,7 @@
         }
       });
 
-      // --- 2. LOGIQUE DU DIAPORAMA ---
+      // --- 2. LOGIQUE DU DIAPORAMA (SCÈNE 2) ---
       AFRAME.registerComponent('slideshow-controls', {
         init: function () {
           this.currentStep = 0; 
@@ -48,7 +48,6 @@
           this.year2020 = document.querySelector('#year-2020');
           this.year2025 = document.querySelector('#year-2025');
 
-          // Sélectionne directement les plans cliquables
           this.btnScene2 = document.querySelector('#btn-launch-scene2');
           this.btnNext = document.querySelector('#btn-next');
           this.btnPrev = document.querySelector('#btn-prev');
@@ -60,7 +59,6 @@
           this.btnScene2.addEventListener('click', () => {
             this.menuGroup.setAttribute('visible', false);
             this.scene2Group.setAttribute('visible', true);
-            // Gestion des classes clickables
             this.toggleClickable('.menu-item', false);
             this.toggleClickable('.scene2-ui', true);
             this.goToYear(1); 
@@ -76,7 +74,7 @@
              if(this.currentStep > 1) this.goToYear(this.currentStep - 1);
           });
 
-          // Fermer
+          // Fermer (Retour Menu)
           this.btnClose.addEventListener('click', () => {
             this.menuGroup.setAttribute('visible', true);
             this.scene2Group.setAttribute('visible', false);
@@ -99,8 +97,7 @@
           if (step === 2) this.year2020.setAttribute('visible', true);
           if (step === 3) this.year2025.setAttribute('visible', true);
 
-          // Gestion intelligente des boutons
-          // Si on est en 2015, on cache "Précédent"
+          // Gestion des boutons
           if (step === 1) {
             this.btnPrev.setAttribute('visible', false); 
             this.btnPrev.classList.remove('clickable');
@@ -109,7 +106,6 @@
             this.btnPrev.classList.add('clickable');
           }
 
-          // Si on est en 2025, on cache "Suivant"
           if (step === 3) {
             this.btnNext.setAttribute('visible', false);
             this.btnNext.classList.remove('clickable');
@@ -124,6 +120,20 @@
           els.forEach(el => {
             if(isClickable) el.classList.add('clickable');
             else el.classList.remove('clickable');
+          });
+        }
+      });
+
+      // --- 3. NAVIGATION (Pour changer de page HTML - Scène 1 & 3) ---
+      AFRAME.registerComponent('navigate-on-click', {
+        schema: {
+          url: {default: ''}
+        },
+        init: function () {
+          var data = this.data;
+          var el = this.el;
+          el.addEventListener('click', function () {
+            window.location.href = data.url;
           });
         }
       });
@@ -147,14 +157,29 @@
         <a-entity id="main-menu">
             <a-plane src="#card" position="0 0 0" height="0.552" width="1" rotation="0 0 0"></a-plane>
             
-            <a-image class="clickable menu-item" src="#scene1-img" position="-0.35 0 0.1" scale="0.25 0.25 0.25"
-                animation="property: position; to: -0.35 0.1 0.1; dur: 1000; dir: alternate; loop: true"></a-image>
+            <a-image class="clickable menu-item" 
+                     src="#scene1-img" 
+                     navigate-on-click="url: scene1.html"
+                     position="-0.35 0 0.1" 
+                     scale="0.25 0.25 0.25"
+                     animation="property: position; to: -0.35 0.1 0.1; dur: 1000; dir: alternate; loop: true">
+            </a-image>
 
-            <a-image id="btn-launch-scene2" class="clickable menu-item" src="#scene2-img" position="0 0 0.1" scale="0.25 0.25 0.25"
-                animation="property: position; to: 0 0.1 0.1; dur: 1000; dir: alternate; loop: true"></a-image>
+            <a-image id="btn-launch-scene2" 
+                     class="clickable menu-item" 
+                     src="#scene2-img" 
+                     position="0 0 0.1" 
+                     scale="0.25 0.25 0.25"
+                     animation="property: position; to: 0 0.1 0.1; dur: 1000; dir: alternate; loop: true">
+            </a-image>
 
-            <a-image class="clickable menu-item" src="#scene3-img" position="0.35 0 0.1" scale="0.25 0.25 0.25"
-                animation="property: position; to: 0.35 0.1 0.1; dur: 1000; dir: alternate; loop: true"></a-image>
+            <a-image class="clickable menu-item" 
+                     src="#scene3-img" 
+                     navigate-on-click="url: scene3.html"
+                     position="0.35 0 0.1" 
+                     scale="0.25 0.25 0.25"
+                     animation="property: position; to: 0.35 0.1 0.1; dur: 1000; dir: alternate; loop: true">
+            </a-image>
         </a-entity>
 
 
@@ -167,7 +192,6 @@
                           population-generator="count: 15; zStart: 0; zEnd: -10; widthSpread: 10; modelScale: 0.1 0.1 0.1" 
                           rotation="90 0 0">
                 </a-entity>
-                
                 <a-text value="2015" position="0 -3 1" align="center" color="#FFF" scale="8 8 8"></a-text>
                 <a-text value="78 Apprentis" position="0 -5 1" align="center" color="#aaa" scale="4 4 4"></a-text>
             </a-entity>
