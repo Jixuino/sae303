@@ -1,70 +1,209 @@
 <!DOCTYPE html>
 <html lang="fr">
   <head>
-    <meta name="SAE3.03" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Menu AR Interactif</title>
     <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
 
     <script>
-      // Composant pour gérer le clic et la redirection
-      AFRAME.registerComponent('navigate-on-click', {
+      // --- 1. GÉNÉRATEUR DE POPULATION ---
+      AFRAME.registerComponent('population-generator', {
         schema: {
-          url: {default: ''}
+          count: {type: 'int', default: 10},
+          zStart: {type: 'number', default: 0},
+          zEnd: {type: 'number', default: -10},
+          widthSpread: {type: 'number', default: 10},
+          modelScale: {type: 'vec3', default: {x: 1, y: 1, z: 1}} 
         },
+        init: function() {
+          let data = this.data;
+          for (let i = 0; i < data.count; i++) {
+            let avatar = document.createElement('a-entity');
+            let posX = (Math.random() - 0.5) * data.widthSpread;
+            let posZ = data.zStart + Math.random() * (data.zEnd - data.zStart);
+            
+            // Note: On garde Y=0 ici, on bougera le groupe entier dans le HTML
+            avatar.setAttribute('position', {x: posX, y: 0, z: posZ});
+            avatar.setAttribute('gltf-model', '#student-model');
+            avatar.setAttribute('scale', data.modelScale);
+            
+            let randomRot = Math.random() * 360;
+            avatar.setAttribute('rotation', {x: 0, y: randomRot, z: 0});
+            
+            this.el.appendChild(avatar);
+          }
+        }
+      });
+
+      // --- 2. LOGIQUE DU DIAPORAMA ---
+      AFRAME.registerComponent('slideshow-controls', {
         init: function () {
-          var data = this.data;
-          var el = this.el;
-          el.addEventListener('click', function () {
-            // Redirection vers l'URL
-            window.location.href = data.url;
+          this.currentStep = 0; 
+          
+          this.menuGroup = document.querySelector('#main-menu');
+          this.scene2Group = document.querySelector('#scene2-container');
+          
+          this.year2015 = document.querySelector('#year-2015');
+          this.year2020 = document.querySelector('#year-2020');
+          this.year2025 = document.querySelector('#year-2025');
+
+          // Sélectionne directement les plans cliquables
+          this.btnScene2 = document.querySelector('#btn-launch-scene2');
+          this.btnNext = document.querySelector('#btn-next');
+          this.btnPrev = document.querySelector('#btn-prev');
+          this.btnClose = document.querySelector('#btn-close');
+
+          // --- Écouteurs ---
+
+          // Lancer Scene 2
+          this.btnScene2.addEventListener('click', () => {
+            this.menuGroup.setAttribute('visible', false);
+            this.scene2Group.setAttribute('visible', true);
+            // Gestion des classes clickables
+            this.toggleClickable('.menu-item', false);
+            this.toggleClickable('.scene2-ui', true);
+            this.goToYear(1); 
+          });
+
+          // Suivant
+          this.btnNext.addEventListener('click', () => {
+            if(this.currentStep < 3) this.goToYear(this.currentStep + 1);
+          });
+
+          // Précédent
+          this.btnPrev.addEventListener('click', () => {
+             if(this.currentStep > 1) this.goToYear(this.currentStep - 1);
+          });
+
+          // Fermer
+          this.btnClose.addEventListener('click', () => {
+            this.menuGroup.setAttribute('visible', true);
+            this.scene2Group.setAttribute('visible', false);
+            this.toggleClickable('.menu-item', true);
+            this.toggleClickable('.scene2-ui', false);
+            this.currentStep = 0;
+          });
+        },
+
+        goToYear: function(step) {
+          this.currentStep = step;
+
+          // Reset visibilité
+          this.year2015.setAttribute('visible', false);
+          this.year2020.setAttribute('visible', false);
+          this.year2025.setAttribute('visible', false);
+
+          // Affiche l'année
+          if (step === 1) this.year2015.setAttribute('visible', true);
+          if (step === 2) this.year2020.setAttribute('visible', true);
+          if (step === 3) this.year2025.setAttribute('visible', true);
+
+          // Gestion intelligente des boutons
+          // Si on est en 2015, on cache "Précédent"
+          if (step === 1) {
+            this.btnPrev.setAttribute('visible', false); 
+            this.btnPrev.classList.remove('clickable');
+          } else {
+            this.btnPrev.setAttribute('visible', true);
+            this.btnPrev.classList.add('clickable');
+          }
+
+          // Si on est en 2025, on cache "Suivant"
+          if (step === 3) {
+            this.btnNext.setAttribute('visible', false);
+            this.btnNext.classList.remove('clickable');
+          } else {
+            this.btnNext.setAttribute('visible', true);
+            this.btnNext.classList.add('clickable');
+          }
+        },
+
+        toggleClickable: function(className, isClickable) {
+          let els = document.querySelectorAll(className);
+          els.forEach(el => {
+            if(isClickable) el.classList.add('clickable');
+            else el.classList.remove('clickable');
           });
         }
       });
     </script>
   </head>
   <body>
-    <a-scene mindar-image="imageTargetSrc: card1.mind;" color-space="sRGB" renderer="colorManagement: true, physicallyCorrectLights" vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false">
+    <a-scene slideshow-controls mindar-image="imageTargetSrc: card1.mind;" color-space="sRGB" renderer="colorManagement: true, physicallyCorrectLights" vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false">
       
       <a-assets>
         <img id="card" src="card1.jpg" />
-        <img id="scene1" src="scenes/1.png" />
-        <img id="scene2" src="scenes/2.png" />
-        <img id="scene3" src="scenes/3.png" />
+        <img id="scene1-img" src="scenes/1.png" />
+        <img id="scene2-img" src="scenes/2.png" />
+        <img id="scene3-img" src="scenes/3.png" />
+        <a-asset-item id="student-model" src="assets_scene2/mjo_character_student_school.glb"></a-asset-item>
       </a-assets>
 
       <a-camera position="0 0 0" look-controls="enabled: false" cursor="fuse: false; rayOrigin: mouse;" raycaster="far: 10000; objects: .clickable"></a-camera>
 
       <a-entity mindar-image-target="targetIndex: 0">
         
-        <a-plane src="#card" position="0 0 0" height="0.552" width="1" rotation="0 0 0"></a-plane>
-        
-        <a-image 
-            class="clickable"
-            navigate-on-click="url: scene1.html"
-            src="#scene1" 
-            position="-0.35 0 0.1" 
-            scale="1 1 1" 
-            animation="property: position; to: -0.35 0.1 0.1; dur: 1000; easing: easeInOutQuad; loop: true; dir: alternate">
-        </a-image>
+        <a-entity id="main-menu">
+            <a-plane src="#card" position="0 0 0" height="0.552" width="1" rotation="0 0 0"></a-plane>
+            
+            <a-image class="clickable menu-item" src="#scene1-img" position="-0.35 0 0.1" scale="0.25 0.25 0.25"
+                animation="property: position; to: -0.35 0.1 0.1; dur: 1000; dir: alternate; loop: true"></a-image>
 
-        <a-image 
-            class="clickable"
-            navigate-on-click="url: scene2.html"
-            src="#scene2" 
-            position="0 0 0.1" 
-            scale="1 1 1" 
-            animation="property: position; to: 0 0.1 0.1; dur: 1000; easing: easeInOutQuad; loop: true; dir: alternate">
-        </a-image>
+            <a-image id="btn-launch-scene2" class="clickable menu-item" src="#scene2-img" position="0 0 0.1" scale="0.25 0.25 0.25"
+                animation="property: position; to: 0 0.1 0.1; dur: 1000; dir: alternate; loop: true"></a-image>
 
-        <a-image 
-            class="clickable"
-            navigate-on-click="url: scene3.html"
-            src="#scene3" 
-            position="0.35 0 0.1" 
-            scale="1 1 1" 
-            animation="property: position; to: 0.35 0.1 0.1; dur: 1000; easing: easeInOutQuad; loop: true; dir: alternate">
-        </a-image>
+            <a-image class="clickable menu-item" src="#scene3-img" position="0.35 0 0.1" scale="0.25 0.25 0.25"
+                animation="property: position; to: 0.35 0.1 0.1; dur: 1000; dir: alternate; loop: true"></a-image>
+        </a-entity>
 
+
+        <a-entity id="scene2-container" visible="false" scale="0.05 0.05 0.05" rotation=" 0 0 0">
+
+            <a-plane width="30" height="40" color="#111" position="0 5 -5"></a-plane>
+
+            <a-entity id="year-2015" visible="false">
+                <a-entity position="0 1 0" 
+                          population-generator="count: 15; zStart: 0; zEnd: -10; widthSpread: 10; modelScale: 0.1 0.1 0.1" 
+                          rotation="90 0 0">
+                </a-entity>
+                
+                <a-text value="2015" position="0 -3 1" align="center" color="#FFF" scale="8 8 8"></a-text>
+                <a-text value="78 Apprentis" position="0 -5 1" align="center" color="#aaa" scale="4 4 4"></a-text>
+            </a-entity>
+
+            <a-entity id="year-2020" visible="false">
+                <a-entity position="0 1 0" 
+                          population-generator="count: 60; zStart: 0; zEnd: -15; widthSpread: 12; modelScale: 0.1 0.1 0.1" 
+                          rotation="90 0 0">
+                </a-entity>
+                <a-text value="2020" position="0 -3 1" align="center" color="#FFF" scale="8 8 8"></a-text>
+                <a-text value="153 Apprentis" position="0 -5 1" align="center" color="#aaa" scale="4 4 4"></a-text>
+            </a-entity>
+
+            <a-entity id="year-2025" visible="false">
+                <a-entity position="0 1 0" 
+                          population-generator="count: 200; zStart: 0; zEnd: -20; widthSpread: 20; modelScale: 0.1 0.1 0.1" 
+                          rotation="90 0 0">
+                </a-entity>
+                <a-text value="2025" position="0 -3 1" align="center" color="#F00" scale="10 10 10"></a-text>
+                <a-text value="928 APPRENTIS !" position="0 -5 1" align="center" color="#F00" scale="5 5 5"></a-text>
+            </a-entity>
+
+
+            <a-plane id="btn-prev" class="scene2-ui" position="-8 -10 2" width="5" height="2.5" color="#333">
+                <a-text value="< RETOUR" align="center" scale="3 3 3" position="0 0 0.1"></a-text>
+            </a-plane>
+
+            <a-plane id="btn-next" class="scene2-ui" position="8 -10 2" width="5" height="2.5" color="#4CC3D9">
+                <a-text value="SUIVANT >" align="center" scale="3 3 3" position="0 0 0.1"></a-text>
+            </a-plane>
+
+            <a-plane id="btn-close" class="scene2-ui" position="0 -10 2" width="6" height="2" color="#D7263D">
+                <a-text value="Affiche" align="center" scale="3 3 3" position="0 0 0.1"></a-text>
+            </a-plane>
+
+        </a-entity> 
       </a-entity>
     </a-scene>
   </body>
