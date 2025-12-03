@@ -50,7 +50,8 @@
     <a-scene>
 
       <a-assets>
-        <audio id="sound-crowd" src="brouhaha.mp3" preload="auto" loop="true"></audio>
+        <audio id="musique-ambiance" src="assets_scene1/leprintempsvivaldi.mp3" preload="auto"></audio>
+        <audio id="sound-crowd" src="assets_scene1/brouhaha.mp3" preload="auto" loop="true"></audio>
         <a-asset-item id="galerie-model" src="assets_scene1/vr_gallery.glb"></a-asset-item>
         <a-image id="text-decoration" src="assets_scene1/texte1.png"></a-image>
       </a-assets>
@@ -62,11 +63,13 @@
 
       <a-gltf-model src="#galerie-model" position="0 0 -10" rotation="0 -90 0" scale="3 3 3"></a-gltf-model>
 
+      <a-sound src="#musique-ambiance" autoplay="true" loop="true" volume="3" positional="false"></a-sound>
+
 
       <a-image src="#text-decoration" position="0 7 -33" rotation="0 0 0" width="14" height="6"></a-image>
 
       <a-box position="-3.5 6 0" width="1.5" depth="1.5" height="12" color="#4cc3d9" distance-check>
-        <a-sound src="#sound-crowd" autoplay="true" loop="true" volume="2" refDistance="3"></a-sound>
+        <a-sound src="#sound-crowd" autoplay="true" loop="true" volume="0.5" refDistance="3"></a-sound>
         
         <a-entity position="0 -1 1" class="hologram" visible="false">
             <a-plane width="3.2" height="1.2" color="#000" opacity="0.8"></a-plane>
@@ -75,7 +78,7 @@
       </a-box>
 
       <a-box position="3.5 4.5 0" width="1.5" depth="1.5" height="9" color="#FFC65D" distance-check>
-        <a-sound src="#sound-crowd" autoplay="true" loop="true" volume="1.5" refDistance="3"></a-sound>
+        <a-sound src="#sound-crowd" autoplay="true" loop="true" volume="0.5" refDistance="3"></a-sound>
         
         <a-entity position="0 0.5 1" class="hologram" visible="false">
             <a-plane width="3.2" height="1.2" color="#000" opacity="0.8"></a-plane>
@@ -84,7 +87,7 @@
       </a-box>
 
       <a-box position="-3.5 2.5 -8" width="1.2" depth="1.2" height="5" color="#7BC8A4" distance-check>
-        <a-sound src="#sound-crowd" autoplay="true" loop="true" volume="0.8" refDistance="2"></a-sound>
+        <a-sound src="#sound-crowd" autoplay="true" loop="true" volume="0.5" refDistance="2"></a-sound>
         
         <a-entity position="0 2 0.8" class="hologram" visible="false">
             <a-plane width="3" height="1" color="#000" opacity="0.8"></a-plane>
@@ -92,7 +95,7 @@
         </a-entity>
       </a-box>
 
-      <a-box position="3.5 0.5 -8" width="1" depth="1" height="1" color="#F16745" distance-check>
+      <a-box position="-3.5 0.5 -24" width="1" depth="1" height="1" color="#F16745" distance-check>
 
         <a-entity position="0 4 0" class="hologram" visible="false">
             <a-plane width="2.5" height="0.8" color="#000" opacity="0.8"></a-plane>
@@ -116,7 +119,7 @@
         </a-entity>
       </a-box>
 
-      <a-box position="-3.5 2 -24" width="1" depth="1" height="4" color="#333" distance-check>
+      <a-box position="3.5 2 -8" width="1" depth="1" height="4" color="#333" distance-check>
 
          <a-entity position="0 2.5 0.6" class="hologram" visible="false">
             <a-plane width="2.5" height="0.8" color="#000" opacity="0.8"></a-plane>
