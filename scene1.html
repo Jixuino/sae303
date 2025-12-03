@@ -7,33 +7,21 @@
     <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
 
     <script>
-      // --- SCRIPT MAGIQUE : DÉTECTION DE PROXIMITÉ ---
-      // Ce composant vérifie à chaque image si la caméra est proche de l'objet
+      // --- DÉTECTION DE PROXIMITÉ ---
       AFRAME.registerComponent('distance-check', {
-        schema: {
-          threshold: {default: 6} // Distance d'activation en mètres
-        },
+        schema: { threshold: {default: 10} },
         tick: function () {
           var camera = this.el.sceneEl.camera;
           if (!camera) return;
-
-          // Position de la caméra et de l'objet
           var camPos = camera.el.object3D.position;
           var objPos = this.el.object3D.position;
-
-          // Calcul de la distance
           var distance = camPos.distanceTo(objPos);
-
-          // Sélectionne l'enfant avec la classe "hologram"
           var hologram = this.el.querySelector('.hologram');
           
           if (hologram) {
             if (distance < this.data.threshold) {
-              // Si proche : on affiche
               hologram.setAttribute('visible', 'true');
-              // Animation d'apparition douce (optionnel, ici on fait simple on/off)
             } else {
-              // Si loin : on cache
               hologram.setAttribute('visible', 'false');
             }
           }
@@ -45,12 +33,9 @@
       .bouton-retour {
         position: fixed; top: 20px; left: 20px; z-index: 1000;
         padding: 12px 24px; background-color: #333; color: white;
-        text-decoration: none; font-family: sans-serif; border-radius: 8px; font-weight: bold;
-        opacity: 0.9;
+        text-decoration: none; font-family: sans-serif; border-radius: 8px; font-weight: bold; opacity: 0.9;
       }
       .bouton-retour:hover { background-color: #555; }
-      
-      /* Instruction pour l'audio */
       .audio-hint {
         position: fixed; bottom: 20px; width: 100%; text-align: center;
         color: #aaa; font-family: sans-serif; pointer-events: none;
@@ -62,89 +47,101 @@
     <a href="index.html" class="bouton-retour">⬅ Retour au menu</a>
     <div class="audio-hint">Avancez avec les flèches (PC) ou en marchant (VR)</div>
 
-    <a-scene background="color: #ffffff" fog="type: exponential; color: #ffffff; density: 0.02">
+    <a-scene>
 
       <a-assets>
         <audio id="sound-crowd" src="brouhaha.mp3" preload="auto" loop="true"></audio>
+        <a-asset-item id="galerie-model" src="assets_scene1/vr_gallery.glb"></a-asset-item>
+        <a-image id="text-decoration" src="assets_scene1/texte1.png"></a-image>
       </a-assets>
 
-      <a-entity light="type: ambient; intensity: 0.7; color: #CCC"></a-entity>
-      <a-entity light="type: point; intensity: 0.5; distance: 50; decay: 2" position="0 10 0"></a-entity>
+      <a-entity light="type: ambient; intensity: 0.6; color: #FFF"></a-entity>
+      <a-entity light="type: point; intensity: 0.5; distance: 30; decay: 2" position="0 5 5"></a-entity>
+      <a-entity light="type: point; intensity: 0.5; distance: 30; decay: 2" position="0 5 -20"></a-entity>
 
-      <a-plane rotation="-90 0 0" width="100" height="100" color="#f0f0f0" roughness="0.1"></a-plane>
 
-      <a-box position="-5 6 -5" width="2" depth="2" height="12" color="#4cc3d9" distance-check>
-        <a-sound src="#sound-crowd" autoplay="true" loop="true" volume="2" refDistance="3" rolloffFactor="1"></a-sound>
+      <a-gltf-model src="#galerie-model" position="0 0 -10" rotation="0 -90 0" scale="3 3 3"></a-gltf-model>
+
+
+      <a-image src="#text-decoration" position="0 7 -33" rotation="0 0 0" width="14" height="6"></a-image>
+
+      <a-box position="-3.5 6 0" width="1.5" depth="1.5" height="12" color="#4cc3d9" distance-check>
+        <a-sound src="#sound-crowd" autoplay="true" loop="true" volume="2" refDistance="3"></a-sound>
         
-        <a-entity position="0 -2 1.5" class="hologram" visible="false">
-            <a-plane width="3" height="1" color="#000" opacity="0.8"></a-plane>
+        <a-entity position="0 -1 1" class="hologram" visible="false">
+            <a-plane width="3.2" height="1.2" color="#000" opacity="0.8"></a-plane>
             <a-text value="MEDICAL\n1156 Etudiants" align="center" color="#00ffff" width="6"></a-text>
         </a-entity>
       </a-box>
 
-      <a-box position="5 4.5 -10" width="2" depth="2" height="9" color="#FFC65D" distance-check>
+      <a-box position="3.5 4.5 0" width="1.5" depth="1.5" height="9" color="#FFC65D" distance-check>
         <a-sound src="#sound-crowd" autoplay="true" loop="true" volume="1.5" refDistance="3"></a-sound>
         
-        <a-entity position="0 -1 1.5" class="hologram" visible="false">
-            <a-plane width="3" height="1" color="#000" opacity="0.8"></a-plane>
+        <a-entity position="0 0.5 1" class="hologram" visible="false">
+            <a-plane width="3.2" height="1.2" color="#000" opacity="0.8"></a-plane>
             <a-text value="COMMERCE\n940 Etudiants" align="center" color="#FFC65D" width="6"></a-text>
         </a-entity>
       </a-box>
 
-      <a-box position="-5 2.5 -15" width="1.5" depth="1.5" height="5" color="#7BC8A4" distance-check>
+      <a-box position="-3.5 2.5 -8" width="1.2" depth="1.2" height="5" color="#7BC8A4" distance-check>
         <a-sound src="#sound-crowd" autoplay="true" loop="true" volume="0.8" refDistance="2"></a-sound>
         
-        <a-entity position="0 0 1.2" class="hologram" visible="false">
-            <a-plane width="2.5" height="0.8" color="#000" opacity="0.8"></a-plane>
+        <a-entity position="0 2 0.8" class="hologram" visible="false">
+            <a-plane width="3" height="1" color="#000" opacity="0.8"></a-plane>
             <a-text value="NUMERIQUE\n484 Etudiants" align="center" color="#7BC8A4" width="5"></a-text>
         </a-entity>
       </a-box>
 
-      <a-box position="5 0.5 -20" width="1" depth="1" height="1" color="#F16745" distance-check>
-        <a-entity position="0 1 0" class="hologram" visible="false">
-            <a-plane width="2" height="0.6" color="#000" opacity="0.8"></a-plane>
+      <a-box position="3.5 0.5 -8" width="1" depth="1" height="1" color="#F16745" distance-check>
+
+        <a-entity position="0 4 0" class="hologram" visible="false">
+            <a-plane width="2.5" height="0.8" color="#000" opacity="0.8"></a-plane>
             <a-text value="TOURISME\n76 Etudiants" align="center" color="#F16745" width="4"></a-text>
         </a-entity>
       </a-box>
 
-      <a-box position="-5 0.25 -25" width="0.8" depth="0.8" height="0.5" color="#D7263D" distance-check>
-        <a-entity position="0 1 0" class="hologram" visible="false">
-            <a-plane width="2" height="0.5" color="#000" opacity="0.8"></a-plane>
+      <a-box position="-3.5 0.25 -16" width="0.8" depth="0.8" height="0.5" color="#D7263D" distance-check>
+
+        <a-entity position="0 4.5 0" class="hologram" visible="false">
+            <a-plane width="2.5" height="0.8" color="#000" opacity="0.8"></a-plane>
             <a-text value="ART\n17 Etudiants" align="center" color="#D7263D" width="4"></a-text>
         </a-entity>
       </a-box>
 
-      <a-box position="5 0.1 -30" width="0.5" depth="0.5" height="0.2" color="#8E44AD" distance-check>
-         <a-entity position="0 0.8 0" class="hologram" visible="false">
-            <a-plane width="2" height="0.5" color="#000" opacity="0.8"></a-plane>
+      <a-box position="3.5 0.1 -24" width="0.5" depth="0.5" height="0.2" color="#8E44AD" distance-check>
+        
+         <a-entity position="0 4.5 0" class="hologram" visible="false">
+            <a-plane width="2.5" height="0.8" color="#000" opacity="0.8"></a-plane>
             <a-text value="LOGISTIQUE\n9 Etudiants (0%)" align="center" color="#8E44AD" width="4"></a-text>
         </a-entity>
       </a-box>
 
-      <a-box position="-5 2 -35" width="1.2" depth="1.2" height="4" color="#333" distance-check>
-         <a-entity position="0 0 1" class="hologram" visible="false">
-            <a-plane width="2" height="0.6" color="#000" opacity="0.8"></a-plane>
+      <a-box position="-3.5 2 -24" width="1" depth="1" height="4" color="#333" distance-check>
+
+         <a-entity position="0 2.5 0.6" class="hologram" visible="false">
+            <a-plane width="2.5" height="0.8" color="#000" opacity="0.8"></a-plane>
             <a-text value="DROIT\n300 Etudiants" align="center" color="#FFF" width="4"></a-text>
         </a-entity>
       </a-box>
 
-      <a-box position="5 1 -40" width="1" depth="1" height="2" color="#333" distance-check>
-         <a-entity position="0 0 1" class="hologram" visible="false">
-            <a-plane width="2" height="0.6" color="#000" opacity="0.8"></a-plane>
+      <a-box position="3.5 1 -16" width="1" depth="1" height="2" color="#333" distance-check>
+
+         <a-entity position="0 3.5 0.6" class="hologram" visible="false">
+            <a-plane width="2.5" height="0.8" color="#000" opacity="0.8"></a-plane>
             <a-text value="SPORT\n150 Etudiants" align="center" color="#FFF" width="4"></a-text>
         </a-entity>
       </a-box>
 
-      <a-box position="0 0.5 -45" width="1" depth="1" height="1" color="#333" distance-check>
-         <a-entity position="0 1 0" class="hologram" visible="false">
-            <a-plane width="2" height="0.6" color="#000" opacity="0.8"></a-plane>
+      <a-box position="0 0.5 -32" width="1" depth="1" height="1" color="#333" distance-check>
+
+         <a-entity position="0 4 0" class="hologram" visible="false">
+            <a-plane width="2.5" height="0.8" color="#000" opacity="0.8"></a-plane>
             <a-text value="LANGUES\n80 Etudiants" align="center" color="#FFF" width="4"></a-text>
         </a-entity>
       </a-box>
 
-
-      <a-entity camera look-controls wasd-controls="acceleration: 100" position="0 1.6 5">
-         <a-cursor color="black" scale="0.5 0.5 0.5" opacity="0.5"></a-cursor>
+      <a-entity camera look-controls="pointerLockEnabled: true" wasd-controls="acceleration: 100" position="0 4.5 8">
+          <a-cursor position="0 0 -1" color="black" scale="0.8 0.8 0.8"></a-cursor>
       </a-entity>
 
     </a-scene>
