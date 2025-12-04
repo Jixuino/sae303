@@ -36,7 +36,7 @@
       });
 
       // =================================================================
-      // 2. GESTIONNAIRE DU PUZZLE (SCÈNE 3) - PROPRE ET ESPACÉ
+      // 2. GESTIONNAIRE DU PUZZLE (SCÈNE 3)
       // =================================================================
       AFRAME.registerComponent('puzzle-manager', {
         init: function() {
@@ -51,11 +51,8 @@
                 {name: "Art", count: 17, color: "#D7263D"},
                 {name: "Logistique", count: 9, color: "#8E44AD"}
             ];
-
             const totalStudents = 3675;
             const container = this.el;
-
-            // Espacement élargi (8 au lieu de 6) pour aérer
             const positions = [
                 {x: -8, y: 10}, {x: 0, y: 10}, {x: 8, y: 10},
                 {x: -8, y: 2},  {x: 0, y: 2},  {x: 8, y: 2},
@@ -64,8 +61,6 @@
 
             filieres.forEach((f, index) => {
                 let percent = ((f.count / totalStudents) * 100).toFixed(1);
-                
-                // Calcul taille (limité pour ne pas cacher le texte)
                 let sizeFactor = Math.sqrt(f.count) / 10; 
                 if(sizeFactor < 0.6) sizeFactor = 0.6;
                 if(sizeFactor > 2.5) sizeFactor = 2.5;
@@ -73,7 +68,6 @@
                 let box = document.createElement('a-box');
                 let targetPos = positions[index];
                 
-                // Position aléatoire de départ
                 let startX = (Math.random() - 0.5) * 60;
                 let startY = (Math.random() - 0.5) * 60;
                 let startZ = 20 + Math.random() * 20;
@@ -81,19 +75,15 @@
                 box.setAttribute('position', {x: startX, y: startY, z: startZ});
                 box.setAttribute('color', f.color);
                 box.setAttribute('depth', 2);
-                // Cases plus petites (4.5) pour laisser du vide
                 box.setAttribute('width', 4.5); 
                 box.setAttribute('height', 4.5);
                 box.setAttribute('scale', {x: sizeFactor, y: sizeFactor, z: 1});
 
-                // Animation d'arrivée
                 let delay = index * 100;
                 box.setAttribute('animation', `property: position; to: ${targetPos.x} ${targetPos.y} 0; dur: 1500; easing: easeOutElastic; delay: ${delay}`);
 
-                // Interaction
                 box.classList.add('scene3-piece'); 
 
-                // Texte (Avancé sur Z=3 pour être bien devant)
                 let text = document.createElement('a-text');
                 text.setAttribute('value', `${f.name}\n${f.count} (${percent}%)`);
                 text.setAttribute('align', 'center');
@@ -102,70 +92,78 @@
                 text.setAttribute('visible', false);
                 box.appendChild(text);
 
-                // Clic sur la pièce
                 box.addEventListener('click', function() {
                     document.querySelectorAll('.scene3-piece').forEach(el => {
                         el.setAttribute('material', 'opacity', 0.4); 
                         el.querySelector('a-text').setAttribute('visible', false);
                     });
-
                     this.setAttribute('material', 'opacity', 1);
                     text.setAttribute('visible', true);
-                    
-                    // Petit effet Pop
                     this.setAttribute('animation__pop', 'property: position; dir: alternate; dur: 200; to: ' + targetPos.x + ' ' + targetPos.y + ' 2; loop: 1');
                 });
-
                 container.appendChild(box);
             });
         }
       });
 
       // =================================================================
-      // 3. CONTRÔLEUR GLOBAL DE L'APPLICATION
+      // 3. CONTRÔLEUR GLOBAL DE L'APPLICATION (MENU + SCENE 2 LOGIC)
       // =================================================================
       AFRAME.registerComponent('app-controller', {
         init: function () {
+          console.log("App Controller Started");
+          
+          // --- ÉLÉMENTS GRAPHIQUES ---
           this.menuGroup = document.querySelector('#main-menu');
           this.scene2Group = document.querySelector('#scene2-container');
           this.scene3Group = document.querySelector('#scene3-container');
           
-          this.scene2Step = 0; 
+          // --- ETAT INTERNE SCENE 2 ---
+          this.scene2Step = 1; // 1=2015, 2=2020, 3=2025
           
-          // Boutons Menu
+          // --- BOUTONS DU MENU PRINCIPAL ---
           document.querySelector('#btn-launch-scene2').addEventListener('click', () => { this.openScene(2); });
           document.querySelector('#btn-launch-scene3').addEventListener('click', () => { this.openScene(3); });
+          document.querySelector('#btn-launch-scene4').addEventListener('click', () => { alert("Scène 4 bientôt disponible"); });
 
-          // Scene 2 Logic
+          // --- BOUTONS INTERNES SCÈNE 2 (Naviguer dans les années) ---
           this.year2015 = document.querySelector('#year-2015');
           this.year2020 = document.querySelector('#year-2020');
           this.year2025 = document.querySelector('#year-2025');
           this.s2BtnPrev = document.querySelector('#s2-btn-prev');
           this.s2BtnNext = document.querySelector('#s2-btn-next');
           
-          this.s2BtnNext.addEventListener('click', () => { if(this.scene2Step < 3) this.goToYear(this.scene2Step + 1); });
-          this.s2BtnPrev.addEventListener('click', () => { if(this.scene2Step > 1) this.goToYear(this.scene2Step - 1); });
+          // Clic sur SUIVANT
+          this.s2BtnNext.addEventListener('click', () => { 
+              if(this.scene2Step < 3) this.goToYear(this.scene2Step + 1); 
+          });
           
-          // BOUTON "Affiche" SCENE 2
+          // Clic sur RETOUR (Année précédente)
+          this.s2BtnPrev.addEventListener('click', () => { 
+              if(this.scene2Step > 1) this.goToYear(this.scene2Step - 1); 
+          });
+          
+          // Clic sur AFFICHE (Fermer Scene 2)
           document.querySelector('#s2-btn-close').addEventListener('click', () => { this.openMenu(); });
 
-          // BOUTON "Affiche" SCENE 3
+          // --- BOUTONS INTERNES SCÈNE 3 (Fermer) ---
           document.querySelector('#s3-btn-close').addEventListener('click', () => { this.openMenu(); });
         },
 
+        // --- FONCTION : OUVRIR LE MENU PRINCIPAL ---
         openMenu: function() {
             this.menuGroup.setAttribute('visible', true);
             this.scene2Group.setAttribute('visible', false);
             this.scene3Group.setAttribute('visible', false);
             
+            // On rend le menu cliquable et on désactive le reste
             this.toggleClickable('.menu-item', true);
             this.toggleClickable('.scene2-ui', false);
             this.toggleClickable('.scene3-piece', false); 
             this.toggleClickable('.scene3-ui', false);
-
-            this.scene2Step = 0;
         },
 
+        // --- FONCTION : OUVRIR UNE SCÈNE ---
         openScene: function(sceneId) {
             this.menuGroup.setAttribute('visible', false);
             this.toggleClickable('.menu-item', false);
@@ -173,7 +171,7 @@
             if (sceneId === 2) {
                 this.scene2Group.setAttribute('visible', true);
                 this.toggleClickable('.scene2-ui', true);
-                this.goToYear(1);
+                this.goToYear(1); // Reset à 2015 quand on ouvre
             } 
             else if (sceneId === 3) {
                 this.scene3Group.setAttribute('visible', true);
@@ -182,23 +180,41 @@
             }
         },
 
+        // --- LOGIQUE DIAPORAMA SCÈNE 2 ---
         goToYear: function(step) {
           this.scene2Step = step;
+          
+          // 1. Cacher toutes les années
           this.year2015.setAttribute('visible', false);
           this.year2020.setAttribute('visible', false);
           this.year2025.setAttribute('visible', false);
 
+          // 2. Afficher l'année demandée
           if (step === 1) this.year2015.setAttribute('visible', true);
           if (step === 2) this.year2020.setAttribute('visible', true);
           if (step === 3) this.year2025.setAttribute('visible', true);
 
-          if (step === 1) { this.s2BtnPrev.setAttribute('visible', false); this.s2BtnPrev.classList.remove('clickable'); }
-          else { this.s2BtnPrev.setAttribute('visible', true); this.s2BtnPrev.classList.add('clickable'); }
+          // 3. Gérer la visibilité des boutons Suivant/Précédent
+          // Si on est en 2015, pas de bouton Précédent
+          if (step === 1) { 
+              this.s2BtnPrev.setAttribute('visible', false); 
+              this.s2BtnPrev.classList.remove('clickable'); 
+          } else { 
+              this.s2BtnPrev.setAttribute('visible', true); 
+              this.s2BtnPrev.classList.add('clickable'); 
+          }
 
-          if (step === 3) { this.s2BtnNext.setAttribute('visible', false); this.s2BtnNext.classList.remove('clickable'); }
-          else { this.s2BtnNext.setAttribute('visible', true); this.s2BtnNext.classList.add('clickable'); }
+          // Si on est en 2025, pas de bouton Suivant
+          if (step === 3) { 
+              this.s2BtnNext.setAttribute('visible', false); 
+              this.s2BtnNext.classList.remove('clickable'); 
+          } else { 
+              this.s2BtnNext.setAttribute('visible', true); 
+              this.s2BtnNext.classList.add('clickable'); 
+          }
         },
 
+        // Utilitaire pour gérer le Raycaster (Clic)
         toggleClickable: function(className, isClickable) {
           let els = document.querySelectorAll(className);
           els.forEach(el => {
@@ -208,24 +224,28 @@
         }
       });
 
-      // --- 4. NAVIGATION HTML (SCÈNE 1) ---
+      // --- 4. NAVIGATION SIMPLE (SCÈNE 1) ---
       AFRAME.registerComponent('navigate-on-click', {
         schema: { url: {default: ''} },
         init: function () {
           var data = this.data;
           this.el.addEventListener('click', function () { window.location.href = data.url; });
+          // Effet de survol visuel
+          this.el.addEventListener('mouseenter', function() { this.setAttribute('scale', '0.28 0.28 0.28'); });
+          this.el.addEventListener('mouseleave', function() { this.setAttribute('scale', '0.25 0.25 0.25'); });
         }
       });
     </script>
   </head>
   <body>
-    <a-scene app-controller mindar-image="imageTargetSrc: card1.mind;" color-space="sRGB" renderer="colorManagement: true, physicallyCorrectLights" vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false">
+    <a-scene app-controller mindar-image="imageTargetSrc: affiche.mind;" color-space="sRGB" renderer="colorManagement: true, physicallyCorrectLights" vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false">
       
       <a-assets>
-        <img id="card" src="card1.jpg" />
-        <img id="scene1-img" src="scenes/1.png" />
-        <img id="scene2-img" src="scenes/2.png" />
-        <img id="scene3-img" src="scenes/3.png" />
+        <img id="affiche" src="main_scene/sans_elements.png" />
+        <img id="scene1-img" src="main_scene/etudiant.png" />
+        <img id="scene2-img" src="main_scene/etablissement.png" />
+        <img id="scene3-img" src="main_scene/camembert.png" />
+        <img id="scene-4-img" src="main_scene/homme_porte.png" />
         <a-asset-item id="student-model" src="assets_scene2/mjo_character_student_school.glb"></a-asset-item>
       </a-assets>
 
@@ -234,7 +254,7 @@
       <a-entity mindar-image-target="targetIndex: 0">
         
         <a-entity id="main-menu">
-            <a-plane src="#card" position="0 0 0" height="0.552" width="1" rotation="0 0 0"></a-plane>
+            <a-plane src="#affiche" position="0 0 0" height="1.552" width="1" rotation="0 0 0"></a-plane>
             
             <a-image class="clickable menu-item" src="#scene1-img" navigate-on-click="url: scene1.html"
                      position="-0.35 0 0.1" scale="0.25 0.25 0.25"
@@ -247,6 +267,10 @@
             <a-image id="btn-launch-scene3" class="clickable menu-item" src="#scene3-img" 
                      position="0.35 0 0.1" scale="0.25 0.25 0.25"
                      animation="property: position; to: 0.35 0.1 0.1; dur: 1000; dir: alternate; loop: true"></a-image>
+
+            <a-image id="btn-launch-scene4" class="clickable menu-item" src="#scene-4-img" 
+                     position="0.7 0 0.1" scale="0.25 0.25 0.25"
+                     animation="property: position; to: 0.7 0.1 0.1; dur: 1000; dir: alternate; loop: true"></a-image>
         </a-entity>
 
 
@@ -285,7 +309,6 @@
 
         <a-entity id="scene3-container" visible="false" scale="0.05 0.05 0.05" rotation="0 0 0">
             <a-plane width="30" height="40" color="#2c3e50" position="0 5 -5"></a-plane>
-            
             <a-text value="Le Puzzle des Filieres" position="0 -5 1" align="center" color="#FFF" scale="6 6 6"></a-text>
 
             <a-entity position="0 4 0" puzzle-manager></a-entity>
