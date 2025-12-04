@@ -2,7 +2,8 @@
 <html lang="fr">
   <head>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Menu AR Interactif - Complet</title>
+    <title>SAE303 PIERRE FRENZEL & AELIS PONTET-BRUN</title>
+    
     <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
 
@@ -35,11 +36,10 @@
       });
 
       // =================================================================
-      // 2. GESTIONNAIRE DU PUZZLE (SCÈNE 3)
+      // 2. GESTIONNAIRE DU PUZZLE (SCÈNE 3) - PROPRE ET ESPACÉ
       // =================================================================
       AFRAME.registerComponent('puzzle-manager', {
         init: function() {
-            // Données des filières (Nom, Effectif, Couleur)
             const filieres = [
                 {name: "Medical", count: 1156, color: "#4cc3d9"},
                 {name: "Commerce", count: 940, color: "#FFC65D"},
@@ -55,76 +55,64 @@
             const totalStudents = 3675;
             const container = this.el;
 
-            // Grille 3x3 : Positions X et Y
+            // Espacement élargi (8 au lieu de 6) pour aérer
             const positions = [
-                {x: -6, y: 8}, {x: 0, y: 8}, {x: 6, y: 8},
-                {x: -6, y: 2}, {x: 0, y: 2}, {x: 6, y: 2},
-                {x: -6, y: -4}, {x: 0, y: -4}, {x: 6, y: -4}
+                {x: -8, y: 10}, {x: 0, y: 10}, {x: 8, y: 10},
+                {x: -8, y: 2},  {x: 0, y: 2},  {x: 8, y: 2},
+                {x: -8, y: -6}, {x: 0, y: -6}, {x: 8, y: -6}
             ];
 
-            // Création des pièces
             filieres.forEach((f, index) => {
-                // Calcul du pourcentage
                 let percent = ((f.count / totalStudents) * 100).toFixed(1);
                 
-                // Calcul de la taille (Scale) basé sur l'effectif
-                // On utilise la racine carrée pour éviter que le petit soit invisible
+                // Calcul taille (limité pour ne pas cacher le texte)
                 let sizeFactor = Math.sqrt(f.count) / 10; 
-                // Clamp pour éviter que ce soit trop petit ou trop gros
-                if(sizeFactor < 0.5) sizeFactor = 0.5;
-                if(sizeFactor > 3) sizeFactor = 3;
+                if(sizeFactor < 0.6) sizeFactor = 0.6;
+                if(sizeFactor > 2.5) sizeFactor = 2.5;
 
-                // Création de l'entité Bloc
                 let box = document.createElement('a-box');
-                
-                // Position finale (Grille)
                 let targetPos = positions[index];
                 
-                // Position initiale (Aléatoire pour l'animation d'assemblage)
-                let startX = (Math.random() - 0.5) * 50;
-                let startY = (Math.random() - 0.5) * 50;
+                // Position aléatoire de départ
+                let startX = (Math.random() - 0.5) * 60;
+                let startY = (Math.random() - 0.5) * 60;
                 let startZ = 20 + Math.random() * 20;
 
                 box.setAttribute('position', {x: startX, y: startY, z: startZ});
                 box.setAttribute('color', f.color);
                 box.setAttribute('depth', 2);
-                box.setAttribute('width', 5.5); // Largeur de case standard
-                box.setAttribute('height', 5.5);
-                
-                // On applique l'échelle sur l'enfant visuel ou directement
-                // Ici on triche : on scale tout le bloc pour montrer l'importance
+                // Cases plus petites (4.5) pour laisser du vide
+                box.setAttribute('width', 4.5); 
+                box.setAttribute('height', 4.5);
                 box.setAttribute('scale', {x: sizeFactor, y: sizeFactor, z: 1});
 
-                // Animation d'entrée (Assemblage du puzzle)
-                // "delay" varie pour qu'ils n'arrivent pas tous en même temps
+                // Animation d'arrivée
                 let delay = index * 100;
                 box.setAttribute('animation', `property: position; to: ${targetPos.x} ${targetPos.y} 0; dur: 1500; easing: easeOutElastic; delay: ${delay}`);
 
-                // --- INTERACTION ---
-                box.classList.add('scene3-piece'); // Pour le raycaster
+                // Interaction
+                box.classList.add('scene3-piece'); 
 
-                // Texte (Info-bulle) caché par défaut
+                // Texte (Avancé sur Z=3 pour être bien devant)
                 let text = document.createElement('a-text');
                 text.setAttribute('value', `${f.name}\n${f.count} (${percent}%)`);
                 text.setAttribute('align', 'center');
-                text.setAttribute('position', '0 0 1.1'); // Devant le bloc
-                text.setAttribute('scale', {x: 2/sizeFactor, y: 2/sizeFactor, z: 1}); // Contre-balence le scale du parent
+                text.setAttribute('position', '0 0 3'); 
+                text.setAttribute('scale', {x: 2.5/sizeFactor, y: 2.5/sizeFactor, z: 1}); 
                 text.setAttribute('visible', false);
                 box.appendChild(text);
 
-                // Événement Clic
+                // Clic sur la pièce
                 box.addEventListener('click', function() {
-                    // Reset des autres pièces (optionnel, pour faire propre)
                     document.querySelectorAll('.scene3-piece').forEach(el => {
-                        el.setAttribute('material', 'opacity', 0.5); // Assombrir les autres
+                        el.setAttribute('material', 'opacity', 0.4); 
                         el.querySelector('a-text').setAttribute('visible', false);
                     });
 
-                    // Mise en avant de la pièce cliquée
                     this.setAttribute('material', 'opacity', 1);
                     text.setAttribute('visible', true);
                     
-                    // Petite animation de "Pop"
+                    // Petit effet Pop
                     this.setAttribute('animation__pop', 'property: position; dir: alternate; dur: 200; to: ' + targetPos.x + ' ' + targetPos.y + ' 2; loop: 1');
                 });
 
@@ -134,54 +122,45 @@
       });
 
       // =================================================================
-      // 3. CONTRÔLEUR GLOBAL DE L'APPLICATION (MENU & NAVIGATION)
+      // 3. CONTRÔLEUR GLOBAL DE L'APPLICATION
       // =================================================================
       AFRAME.registerComponent('app-controller', {
         init: function () {
-          // --- ÉLÉMENTS ---
           this.menuGroup = document.querySelector('#main-menu');
           this.scene2Group = document.querySelector('#scene2-container');
           this.scene3Group = document.querySelector('#scene3-container');
           
-          // --- ETAT INTERNE ---
           this.scene2Step = 0; 
           
-          // --- BOUTONS MENU PRINCIPAL ---
-          document.querySelector('#btn-launch-scene2').addEventListener('click', () => {
-             this.openScene(2);
-          });
-          document.querySelector('#btn-launch-scene3').addEventListener('click', () => {
-             this.openScene(3);
-          });
+          // Boutons Menu
+          document.querySelector('#btn-launch-scene2').addEventListener('click', () => { this.openScene(2); });
+          document.querySelector('#btn-launch-scene3').addEventListener('click', () => { this.openScene(3); });
 
-          // --- LOGIQUE SCÈNE 2 (DIAPORAMA) ---
+          // Scene 2 Logic
           this.year2015 = document.querySelector('#year-2015');
           this.year2020 = document.querySelector('#year-2020');
           this.year2025 = document.querySelector('#year-2025');
           this.s2BtnPrev = document.querySelector('#s2-btn-prev');
           this.s2BtnNext = document.querySelector('#s2-btn-next');
           
-          // Listeners Scene 2
           this.s2BtnNext.addEventListener('click', () => { if(this.scene2Step < 3) this.goToYear(this.scene2Step + 1); });
           this.s2BtnPrev.addEventListener('click', () => { if(this.scene2Step > 1) this.goToYear(this.scene2Step - 1); });
+          
+          // BOUTON "Affiche" SCENE 2
           document.querySelector('#s2-btn-close').addEventListener('click', () => { this.openMenu(); });
 
-          // --- LOGIQUE SCÈNE 3 (PUZZLE) ---
+          // BOUTON "Affiche" SCENE 3
           document.querySelector('#s3-btn-close').addEventListener('click', () => { this.openMenu(); });
         },
 
-        // --- FONCTIONS DE NAVIGATION ---
-        
         openMenu: function() {
-            // Affiche Menu, Cache Scènes
             this.menuGroup.setAttribute('visible', true);
             this.scene2Group.setAttribute('visible', false);
             this.scene3Group.setAttribute('visible', false);
             
-            // Gestion Raycaster (Clics)
             this.toggleClickable('.menu-item', true);
             this.toggleClickable('.scene2-ui', false);
-            this.toggleClickable('.scene3-piece', false); // Désactive les pièces du puzzle
+            this.toggleClickable('.scene3-piece', false); 
             this.toggleClickable('.scene3-ui', false);
 
             this.scene2Step = 0;
@@ -194,20 +173,15 @@
             if (sceneId === 2) {
                 this.scene2Group.setAttribute('visible', true);
                 this.toggleClickable('.scene2-ui', true);
-                this.goToYear(1); // Démarre en 2015
+                this.goToYear(1);
             } 
             else if (sceneId === 3) {
                 this.scene3Group.setAttribute('visible', true);
-                // Relancer l'animation du puzzle (astuce : on cache/affiche le container)
-                // Note : Pour une vraie réinitialisation propre, il faudrait recréer les boîtes, 
-                // mais ici l'animation se joue au chargement initial ou reload page.
-                
                 this.toggleClickable('.scene3-ui', true);
                 this.toggleClickable('.scene3-piece', true);
             }
         },
 
-        // Logique Diaporama Scene 2
         goToYear: function(step) {
           this.scene2Step = step;
           this.year2015.setAttribute('visible', false);
@@ -218,7 +192,6 @@
           if (step === 2) this.year2020.setAttribute('visible', true);
           if (step === 3) this.year2025.setAttribute('visible', true);
 
-          // Visibilité boutons Prev/Next
           if (step === 1) { this.s2BtnPrev.setAttribute('visible', false); this.s2BtnPrev.classList.remove('clickable'); }
           else { this.s2BtnPrev.setAttribute('visible', true); this.s2BtnPrev.classList.add('clickable'); }
 
@@ -235,7 +208,7 @@
         }
       });
 
-      // --- 4. NAVIGATION SIMPLE (SCÈNE 1) ---
+      // --- 4. NAVIGATION HTML (SCÈNE 1) ---
       AFRAME.registerComponent('navigate-on-click', {
         schema: { url: {default: ''} },
         init: function () {
@@ -311,17 +284,15 @@
 
 
         <a-entity id="scene3-container" visible="false" scale="0.05 0.05 0.05" rotation="0 0 0">
-            
             <a-plane width="30" height="40" color="#2c3e50" position="0 5 -5"></a-plane>
-
-            <a-text value="Le Puzzle des Filieres" position="0 15 1" align="center" color="#FFF" scale="6 6 6"></a-text>
+            
+            <a-text value="Le Puzzle des Filieres" position="0 -5 1" align="center" color="#FFF" scale="6 6 6"></a-text>
 
             <a-entity position="0 4 0" puzzle-manager></a-entity>
 
             <a-plane id="s3-btn-close" class="scene3-ui" position="0 -10 2" width="6" height="2" color="#D7263D">
                 <a-text value="Affiche" align="center" scale="3 3 3" position="0 0 0.1"></a-text>
             </a-plane>
-
         </a-entity>
 
       </a-entity>
