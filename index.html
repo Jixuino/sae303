@@ -26,7 +26,7 @@
             let posX = (Math.random() - 0.5) * data.widthSpread;
             let posZ = data.zStart + Math.random() * (data.zEnd - data.zStart);
             avatar.setAttribute('position', {x: posX, y: 0, z: posZ});
-            avatar.setAttribute('gltf-model', '#student-model');
+            avatar.setAttribute('gltf-model', '#student-model'); 
             avatar.setAttribute('scale', data.modelScale);
             let randomRot = Math.random() * 360;
             avatar.setAttribute('rotation', {x: 0, y: randomRot, z: 0});
@@ -107,63 +107,140 @@
       });
 
       // =================================================================
-      // 3. CONTRÔLEUR GLOBAL DE L'APPLICATION (MENU + SCENE 2 LOGIC)
+      // 3. LA MARÉE HUMAINE (SCÈNE 4) - CORRIGÉ
+      // =================================================================
+      AFRAME.registerComponent('tide-manager', {
+        init: function() {
+            this.totalVisuals = 100; 
+            this.visuals = []; 
+            this.container = this.el;
+            this.infoText = document.querySelector('#s4-info-text');
+
+            this.diplomas = [
+                {id: "btn-dip-en", label: "Diplome EN", count: 2665, color: "#2196F3"}, 
+                {id: "btn-dip-etat", label: "Diplome Etat", count: 453, color: "#F44336"}, 
+                {id: "btn-rncp", label: "Titre RNCP", count: 379, color: "#4CAF50"}, 
+                {id: "btn-certif", label: "Certificat", count: 98, color: "#FFEB3B"}, 
+                {id: "btn-certif-pro", label: "Certificat Pro", count: 68, color: "#FF9800"}, 
+                {id: "btn-titre-pro", label: "Titre Pro", count: 12, color: "#9C27B0"} 
+            ];
+            
+            const totalRealStudents = 3675;
+
+            // --- CRÉATION DE LA FOULE ---
+            for(let i=0; i<this.totalVisuals; i++) {
+                let ent = document.createElement('a-entity');
+                
+                ent.setAttribute('gltf-model', '#student'); 
+                
+                // CORRECTION IMPORTANTE : L'ÉCHELLE
+                // Le container parent est déjà à 0.05.
+
+                ent.setAttribute('scale', '10 10 10'); 
+                
+                // Position aléatoire Gauche
+                let startX = -12 + Math.random() * 8; 
+                let startZ = -10 + Math.random() * 20;
+                
+                ent.setAttribute('position', {x: startX, y: 0, z: startZ});
+                
+                // CORRECTION ROTATION : Si le modèle est couché, il faut peut-être x:90 ou x:0
+                // J'essaie une rotation standard debout.
+                ent.setAttribute('rotation', {x: 0, y: 0, z: 0}); 
+
+                ent.userData = { restX: startX, restZ: startZ };
+                
+                this.container.appendChild(ent);
+                this.visuals.push(ent);
+            }
+
+            // --- LISTENERS ---
+            this.diplomas.forEach(dip => {
+                let btn = document.querySelector(`#${dip.id}`);
+                if(btn) {
+                    btn.addEventListener('click', () => {
+                        this.activateTide(dip, totalRealStudents);
+                    });
+                }
+            });
+        },
+
+        activateTide: function(diplomaData, total) {
+            let ratio = diplomaData.count / total;
+            let numToMove = Math.round(ratio * this.totalVisuals);
+            if(diplomaData.count > 0 && numToMove === 0) numToMove = 1;
+
+            // Update Texte
+            let percent = (ratio * 100).toFixed(1);
+            this.infoText.setAttribute('value', `${diplomaData.label}\n${diplomaData.count} Etudiants\n(${percent}%)`);
+            this.infoText.setAttribute('color', diplomaData.color);
+
+            // Animation
+            this.visuals.forEach((ent, index) => {
+                if (index < numToMove) {
+                    // Mouvement vers Droite
+                    let targetX = 4 + Math.random() * 8;
+                    let targetZ = -10 + Math.random() * 20;
+
+                    ent.setAttribute('animation', `property: position; to: ${targetX} 0 ${targetZ}; dur: 1500; easing: easeInOutQuad`);
+                    
+                    // Effet de sélection (Grossit un peu)
+                    ent.setAttribute('scale', '10 10 10'); 
+                } else {
+                    // Retour Gauche
+                    ent.setAttribute('animation', `property: position; to: ${ent.userData.restX} 0 ${ent.userData.restZ}; dur: 1500; easing: easeInOutQuad`);
+                    ent.setAttribute('scale', '10 10 10');
+                }
+            });
+        }
+      });
+
+      // =================================================================
+      // 4. CONTRÔLEUR GLOBAL
       // =================================================================
       AFRAME.registerComponent('app-controller', {
         init: function () {
-          console.log("App Controller Started");
-          
-          // --- ÉLÉMENTS GRAPHIQUES ---
           this.menuGroup = document.querySelector('#main-menu');
           this.scene2Group = document.querySelector('#scene2-container');
           this.scene3Group = document.querySelector('#scene3-container');
+          this.scene4Group = document.querySelector('#scene4-container');
           
-          // --- ETAT INTERNE SCENE 2 ---
-          this.scene2Step = 1; // 1=2015, 2=2020, 3=2025
+          this.scene2Step = 1; 
           
-          // --- BOUTONS DU MENU PRINCIPAL ---
+          // Menu Principal
           document.querySelector('#btn-launch-scene2').addEventListener('click', () => { this.openScene(2); });
           document.querySelector('#btn-launch-scene3').addEventListener('click', () => { this.openScene(3); });
-          document.querySelector('#btn-launch-scene4').addEventListener('click', () => { alert("Scène 4 bientôt disponible"); });
+          document.querySelector('#btn-launch-scene4').addEventListener('click', () => { this.openScene(4); });
 
-          // --- BOUTONS INTERNES SCÈNE 2 (Naviguer dans les années) ---
+          // Scene 2
           this.year2015 = document.querySelector('#year-2015');
           this.year2020 = document.querySelector('#year-2020');
           this.year2025 = document.querySelector('#year-2025');
           this.s2BtnPrev = document.querySelector('#s2-btn-prev');
           this.s2BtnNext = document.querySelector('#s2-btn-next');
           
-          // Clic sur SUIVANT
-          this.s2BtnNext.addEventListener('click', () => { 
-              if(this.scene2Step < 3) this.goToYear(this.scene2Step + 1); 
-          });
-          
-          // Clic sur RETOUR (Année précédente)
-          this.s2BtnPrev.addEventListener('click', () => { 
-              if(this.scene2Step > 1) this.goToYear(this.scene2Step - 1); 
-          });
-          
-          // Clic sur AFFICHE (Fermer Scene 2)
+          this.s2BtnNext.addEventListener('click', () => { if(this.scene2Step < 3) this.goToYear(this.scene2Step + 1); });
+          this.s2BtnPrev.addEventListener('click', () => { if(this.scene2Step > 1) this.goToYear(this.scene2Step - 1); });
           document.querySelector('#s2-btn-close').addEventListener('click', () => { this.openMenu(); });
 
-          // --- BOUTONS INTERNES SCÈNE 3 (Fermer) ---
+          // Scene 3 & 4
           document.querySelector('#s3-btn-close').addEventListener('click', () => { this.openMenu(); });
+          document.querySelector('#s4-btn-close').addEventListener('click', () => { this.openMenu(); });
         },
 
-        // --- FONCTION : OUVRIR LE MENU PRINCIPAL ---
         openMenu: function() {
             this.menuGroup.setAttribute('visible', true);
             this.scene2Group.setAttribute('visible', false);
             this.scene3Group.setAttribute('visible', false);
+            this.scene4Group.setAttribute('visible', false);
             
-            // On rend le menu cliquable et on désactive le reste
             this.toggleClickable('.menu-item', true);
             this.toggleClickable('.scene2-ui', false);
             this.toggleClickable('.scene3-piece', false); 
             this.toggleClickable('.scene3-ui', false);
+            this.toggleClickable('.scene4-ui', false);
         },
 
-        // --- FONCTION : OUVRIR UNE SCÈNE ---
         openScene: function(sceneId) {
             this.menuGroup.setAttribute('visible', false);
             this.toggleClickable('.menu-item', false);
@@ -171,50 +248,36 @@
             if (sceneId === 2) {
                 this.scene2Group.setAttribute('visible', true);
                 this.toggleClickable('.scene2-ui', true);
-                this.goToYear(1); // Reset à 2015 quand on ouvre
+                this.goToYear(1); 
             } 
             else if (sceneId === 3) {
                 this.scene3Group.setAttribute('visible', true);
                 this.toggleClickable('.scene3-ui', true);
                 this.toggleClickable('.scene3-piece', true);
             }
+            else if (sceneId === 4) {
+                this.scene4Group.setAttribute('visible', true);
+                this.toggleClickable('.scene4-ui', true);
+            }
         },
 
-        // --- LOGIQUE DIAPORAMA SCÈNE 2 ---
         goToYear: function(step) {
           this.scene2Step = step;
-          
-          // 1. Cacher toutes les années
           this.year2015.setAttribute('visible', false);
           this.year2020.setAttribute('visible', false);
           this.year2025.setAttribute('visible', false);
 
-          // 2. Afficher l'année demandée
           if (step === 1) this.year2015.setAttribute('visible', true);
           if (step === 2) this.year2020.setAttribute('visible', true);
           if (step === 3) this.year2025.setAttribute('visible', true);
 
-          // 3. Gérer la visibilité des boutons Suivant/Précédent
-          // Si on est en 2015, pas de bouton Précédent
-          if (step === 1) { 
-              this.s2BtnPrev.setAttribute('visible', false); 
-              this.s2BtnPrev.classList.remove('clickable'); 
-          } else { 
-              this.s2BtnPrev.setAttribute('visible', true); 
-              this.s2BtnPrev.classList.add('clickable'); 
-          }
+          if (step === 1) { this.s2BtnPrev.setAttribute('visible', false); this.s2BtnPrev.classList.remove('clickable'); }
+          else { this.s2BtnPrev.setAttribute('visible', true); this.s2BtnPrev.classList.add('clickable'); }
 
-          // Si on est en 2025, pas de bouton Suivant
-          if (step === 3) { 
-              this.s2BtnNext.setAttribute('visible', false); 
-              this.s2BtnNext.classList.remove('clickable'); 
-          } else { 
-              this.s2BtnNext.setAttribute('visible', true); 
-              this.s2BtnNext.classList.add('clickable'); 
-          }
+          if (step === 3) { this.s2BtnNext.setAttribute('visible', false); this.s2BtnNext.classList.remove('clickable'); }
+          else { this.s2BtnNext.setAttribute('visible', true); this.s2BtnNext.classList.add('clickable'); }
         },
 
-        // Utilitaire pour gérer le Raycaster (Clic)
         toggleClickable: function(className, isClickable) {
           let els = document.querySelectorAll(className);
           els.forEach(el => {
@@ -224,15 +287,12 @@
         }
       });
 
-      // --- 4. NAVIGATION SIMPLE (SCÈNE 1) ---
+      // --- 5. NAVIGATION HTML ---
       AFRAME.registerComponent('navigate-on-click', {
         schema: { url: {default: ''} },
         init: function () {
           var data = this.data;
           this.el.addEventListener('click', function () { window.location.href = data.url; });
-          // Effet de survol visuel
-          this.el.addEventListener('mouseenter', function() { this.setAttribute('scale', '0.28 0.28 0.28'); });
-          this.el.addEventListener('mouseleave', function() { this.setAttribute('scale', '0.25 0.25 0.25'); });
         }
       });
     </script>
@@ -247,9 +307,11 @@
         <img id="scene3-img" src="main_scene/camembert.png" />
         <img id="scene-4-img" src="main_scene/homme_porte.png" />
         <a-asset-item id="student-model" src="assets_scene2/mjo_character_student_school.glb"></a-asset-item>
+        
+        <a-asset-item id="student" src="assets_scene4/student.glb"></a-asset-item>
       </a-assets>
 
-      <a-camera position="0 0 0" look-controls="enabled: false" cursor="fuse: false; rayOrigin: mouse;" raycaster="far: 10000; objects: .clickable"></a-camera>
+      <a-camera position="0 0 0" look-controls="enabled: false" cursor="fuse: false; rayOrigin: mouse;" raycaster="far: 100000; objects: .clickable"></a-camera>
 
       <a-entity mindar-image-target="targetIndex: 0">
         
@@ -309,11 +371,46 @@
 
         <a-entity id="scene3-container" visible="false" scale="0.05 0.05 0.05" rotation="0 0 0">
             <a-plane width="30" height="40" color="#2c3e50" position="0 5 -5"></a-plane>
-            <a-text value="Le Puzzle des Filieres" position="0 -5 1" align="center" color="#FFF" scale="6 6 6"></a-text>
-
+            <a-text value="Le Puzzle des Filieres" position="0 15 1" align="center" color="#FFF" scale="6 6 6"></a-text>
+            
             <a-entity position="0 4 0" puzzle-manager></a-entity>
 
             <a-plane id="s3-btn-close" class="scene3-ui" position="0 -10 2" width="6" height="2" color="#D7263D">
+                <a-text value="Affiche" align="center" scale="3 3 3" position="0 0 0.1"></a-text>
+            </a-plane>
+        </a-entity>
+
+
+        <a-entity id="scene4-container" visible="false" scale="0.05 0.05 0.05" rotation="0 0 0">
+            <a-plane width="30" height="40" color="#111111" position="0 5 -5"></a-plane>
+            
+            <a-text value="REPARTITION PAR DIPLOME" position="0 20 1" align="center" color="#0000" scale="6 6 6"></a-text>
+
+            <a-entity position="0 5 0" tide-manager></a-entity>
+
+            <a-text id="s4-info-text" value="Cliquez sur un diplome" position="0 15 1" align="center" color="#0000" scale="8 8 8"></a-text>
+
+            <a-plane id="btn-dip-en" class="scene4-ui" position="-10 -2 2" width="8" height="2" color="#2196F3">
+                <a-text value="Diplome EN" align="center" scale="3 3 3" position="0 0 0.1"></a-text>
+            </a-plane>
+            <a-plane id="btn-dip-etat" class="scene4-ui" position="0 -2 2" width="8" height="2" color="#F44336">
+                <a-text value="Diplome Etat" align="center" scale="3 3 3" position="0 0 0.1"></a-text>
+            </a-plane>
+            <a-plane id="btn-rncp" class="scene4-ui" position="10 -2 2" width="8" height="2" color="#4CAF50">
+                <a-text value="Titre RNCP" align="center" scale="3 3 3" position="0 0 0.1"></a-text>
+            </a-plane>
+
+            <a-plane id="btn-certif" class="scene4-ui" position="-10 -5 2" width="8" height="2" color="#FFEB3B">
+                <a-text value="Certificat" align="center" scale="3 3 3" position="0 0 0.1" color="black"></a-text>
+            </a-plane>
+            <a-plane id="btn-certif-pro" class="scene4-ui" position="0 -5 2" width="8" height="2" color="#FF9800">
+                <a-text value="Certif Pro" align="center" scale="3 3 3" position="0 0 0.1"></a-text>
+            </a-plane>
+            <a-plane id="btn-titre-pro" class="scene4-ui" position="10 -5 2" width="8" height="2" color="#9C27B0">
+                <a-text value="Titre Pro" align="center" scale="3 3 3" position="0 0 0.1"></a-text>
+            </a-plane>
+
+            <a-plane id="s4-btn-close" class="scene4-ui" position="0 -10 2" width="6" height="2" color="#D7263D">
                 <a-text value="Affiche" align="center" scale="3 3 3" position="0 0 0.1"></a-text>
             </a-plane>
         </a-entity>
