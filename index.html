@@ -9,7 +9,7 @@
 
     <script>
       // =================================================================
-      // 1. GÉNÉRATEUR DE POPULATION (SCÈNE 2)
+      // 1. GÉNÉRATEUR DE POPULATION (SCÈNE 2) - INCHANGÉ (MJO)
       // =================================================================
       AFRAME.registerComponent('population-generator', {
         schema: {
@@ -25,88 +25,114 @@
             let avatar = document.createElement('a-entity');
             let posX = (Math.random() - 0.5) * data.widthSpread;
             let posZ = data.zStart + Math.random() * (data.zEnd - data.zStart);
+            
             avatar.setAttribute('position', {x: posX, y: 0, z: posZ});
             avatar.setAttribute('gltf-model', '#student-model'); 
             avatar.setAttribute('scale', data.modelScale);
+            
             let randomRot = Math.random() * 360;
             avatar.setAttribute('rotation', {x: 0, y: randomRot, z: 0});
+            
             this.el.appendChild(avatar);
           }
         }
       });
 
       // =================================================================
-      // 2. LA FORÊT DES FORMATIONS (SCÈNE 3 - REMPLACE LE PUZZLE)
+      // 2. LA FORÊT DES FORMATIONS (SCÈNE 3) - MODIFIÉ (Espacement dynamique)
       // =================================================================
       AFRAME.registerComponent('forest-manager', {
         init: function() {
             const container = this.el;
 
-            // Configuration des 3 zones de la forêt
             const zones = [
                 { 
-                    // NIVEAU 5 (BAC+2) 
-                    count: 48, 
-                    model: '#arbre', 
-                    scale: '0.2 0.2 0.2',
-                    xPos: -10, zPos: -5, width: 12, depth: 15,
+                    // NIVEAU 5 (BAC+2) - Gauche
+                    count: 48, model: '#arbre', scale: '0.2 0.2 0.2', color: '#4CAF50', 
+                    xPos: -8, yPos: 0, width: 5, height: 15, 
                     label: "Niveau 5\n(48 Formations)"
                 },
                 { 
-                    // NIVEAU 6 (BAC+3/4) 
-                    count: 37, 
-                    model: '#arbre', 
-                    scale: '0.6 0.6 0.6',
-                    xPos: 10, zPos: -5, width: 10, depth: 12,
+                    // NIVEAU 6 (BAC+3/4) - Droite
+                    count: 37, model: '#arbre', scale: '0.4 0.4 0.4', color: '#FF9800', 
+                    xPos: 8, yPos: 0, width: 5, height: 15, 
                     label: "Niveau 6\n(37 Formations)"
                 },
                 { 
-                    // NIVEAU 7 (BAC+5) 
-                    count: 5, 
-                    model: '#arbre', 
-                    scale: '1 1 1', // Un peu plus grands
-                    xPos: 0, zPos: 5, width: 5, depth: 3,
+                    // NIVEAU 7 (BAC+5) - Centre
+                    count: 5, model: '#arbre', scale: '0.6 0.6 0.6', color: '#9C27B0', 
+                    xPos: 0, yPos: 0, width: 5, height: 15, 
                     label: "Niveau 7\n(5 Formations)"
                 }
             ];
 
             zones.forEach(zone => {
-                // 1. Création du Texte au dessus de la zone
+                // Texte (Inchangé)
                 let text = document.createElement('a-text');
                 text.setAttribute('value', zone.label);
                 text.setAttribute('align', 'center');
                 text.setAttribute('color', zone.color);
-                text.setAttribute('scale', '8 8 8');
-                text.setAttribute('position', {x: zone.xPos, y: 12, z: zone.zPos}); // Flotte haut
+                text.setAttribute('scale', '5 5 5');
+                text.setAttribute('position', {x: zone.xPos, y: 15, z: 2}); 
                 container.appendChild(text);
 
-                // 2. Génération des arbres
+                // --- NOUVELLE LOGIQUE D'ESPACEMENT ---
+                // On prépare un tableau pour retenir où sont les arbres précédents de cette zone
+                let placedTrees = []; 
+                
+                // On détermine le rayon d'espacement selon le scale
+                // On récupère la valeur numérique du scale (ex: "0.6 0.6 0.6" -> 0.6)
+                let scaleVal = parseFloat(zone.scale.split(' ')[0]);
+                let minDistance = 0;
+
+                // C'est ici qu'on règle l'espacement demandé
+                if (scaleVal >= 1) minDistance = 2.5;      // Gros espace pour les gros arbres
+                else if (scaleVal >= 0.6) minDistance = 1.2; // Espace moyen
+                else minDistance = 0.1;                    // Tout petit (presque rien) pour les petits arbres
+
+                // Génération des arbres
                 for(let i=0; i<zone.count; i++) {
                     let tree = document.createElement('a-entity');
                     
-                    // Position aléatoire dans la zone définie
-                    let px = zone.xPos + (Math.random() - 0.5) * zone.width;
-                    let pz = zone.zPos + (Math.random() - 0.5) * zone.depth;
-                    
-                    tree.setAttribute('position', {x: px, y: 0, z: pz});
+                    let px, py;
+                    let validPosition = false;
+                    let attempts = 0;
+                    let maxAttempts = 50; // Nombre d'essais max pour trouver une place libre
+
+                    // Boucle : "Essaie de trouver une place libre"
+                    while (!validPosition && attempts < maxAttempts) {
+                        // 1. Position aléatoire (comme avant)
+                        px = zone.xPos + (Math.random() - 0.5) * zone.width;
+                        py = zone.yPos + (Math.random() - 0.5) * zone.height;
+
+                        // 2. Vérification de distance
+                        let collision = false;
+                        if (minDistance > 0.2) { // On ne vérifie que si on veut de l'espace (pas pour les petits scale 0.2)
+                            for (let pos of placedTrees) {
+                                let dx = px - pos.x;
+                                let dy = py - pos.y;
+                                let distance = Math.sqrt(dx*dx + dy*dy);
+                                if (distance < minDistance) {
+                                    collision = true;
+                                    break;
+                                }
+                            }
+                        }
+
+                        if (!collision) {
+                            validPosition = true;
+                        }
+                        attempts++;
+                    }
+
+                    // On enregistre cette position validée
+                    placedTrees.push({x: px, y: py});
+
+                    // Application des attributs (Inchangé)
+                    tree.setAttribute('position', {x: px, y: py, z: 0});
                     tree.setAttribute('gltf-model', zone.model);
                     tree.setAttribute('scale', zone.scale);
-                    
-                    // Rotation aléatoire pour le réalisme
-                    tree.setAttribute('rotation', {x: 0, y: Math.random() * 360, z: 0});
-
-                    // 3. Application de la couleur (Hack pour colorer un GLB)
-                    tree.addEventListener('model-loaded', function() {
-                        const obj = tree.getObject3D('mesh');
-                        if (obj) {
-                            obj.traverse(function(node) {
-                                if (node.isMesh) {
-                                    // On force la couleur du matériau
-                                    node.material.color.set(zone.color);
-                                }
-                            });
-                        }
-                    });
+                    tree.setAttribute('rotation', {x: 90, y: 0, z: 0});
 
                     container.appendChild(tree);
                 }
@@ -114,8 +140,8 @@
         }
       });
 
-      // =================================================================
-      // 3. LA MARÉE HUMAINE (SCÈNE 4)
+      // // =================================================================
+      // 3. LA MARÉE HUMAINE (SCÈNE 4) - ZONE RÉDUITE
       // =================================================================
       AFRAME.registerComponent('tide-manager', {
         init: function() {
@@ -135,21 +161,30 @@
             
             const totalRealStudents = 3675;
 
-            // --- CRÉATION DE LA FOULE ---
             for(let i=0; i<this.totalVisuals; i++) {
                 let ent = document.createElement('a-entity');
                 ent.setAttribute('gltf-model', '#student'); 
                 ent.setAttribute('scale', '10 10 10'); 
-                let startX = -12 + Math.random() * 8; 
-                let startZ = -10 + Math.random() * 20;
-                ent.setAttribute('position', {x: startX, y: 0, z: startZ});
-                ent.setAttribute('rotation', {x: 0, y: 0, z: 0}); 
-                ent.userData = { restX: startX, restZ: startZ };
+                
+                // --- MODIFICATION ICI (ZONE DE DÉPART PLUS PETITE) ---
+                // Avant : Largeur 8, Hauteur 30
+                // Maintenant : Largeur 5, Hauteur 14 (beaucoup plus compact)
+                
+                // X entre -11 et -6 (Gauche)
+                let startX = -11 + Math.random() * 5; 
+                
+                // Y entre -7 et +7 (Centré verticalement)
+                let startY = -7 + Math.random() * 14; 
+                
+                ent.setAttribute('position', {x: startX, y: startY, z: 0});
+                ent.setAttribute('rotation', {x: 90, y: 0, z: 0}); 
+
+                ent.userData = { restX: startX, restY: startY };
+                
                 this.container.appendChild(ent);
                 this.visuals.push(ent);
             }
 
-            // --- LISTENERS ---
             this.diplomas.forEach(dip => {
                 let btn = document.querySelector(`#${dip.id}`);
                 if(btn) {
@@ -171,12 +206,15 @@
 
             this.visuals.forEach((ent, index) => {
                 if (index < numToMove) {
-                    let targetX = 4 + Math.random() * 8;
-                    let targetZ = -10 + Math.random() * 20;
-                    ent.setAttribute('animation', `property: position; to: ${targetX} 0 ${targetZ}; dur: 1500; easing: easeInOutQuad`);
-                    ent.setAttribute('scale', '10 10 10'); 
+                    // --- MODIFICATION ICI (ZONE D'ARRIVÉE PLUS PETITE AUSSI) ---
+                    // Pour que ça reste joli quand ils bougent à droite
+                    let targetX = 6 + Math.random() * 5;   // X entre 6 et 11
+                    let targetY = -7 + Math.random() * 14; // Y entre -7 et 7
+
+                    ent.setAttribute('animation', `property: position; to: ${targetX} ${targetY} 0; dur: 1500; easing: easeInOutQuad`);
+                    ent.setAttribute('scale', '12 12 12'); 
                 } else {
-                    ent.setAttribute('animation', `property: position; to: ${ent.userData.restX} 0 ${ent.userData.restZ}; dur: 1500; easing: easeInOutQuad`);
+                    ent.setAttribute('animation', `property: position; to: ${ent.userData.restX} ${ent.userData.restY} 0; dur: 1500; easing: easeInOutQuad`);
                     ent.setAttribute('scale', '10 10 10');
                 }
             });
@@ -184,7 +222,7 @@
       });
 
       // =================================================================
-      // 4. CONTRÔLEUR GLOBAL DE L'APPLICATION
+      // 4. CONTRÔLEUR GLOBAL - INCHANGÉ
       // =================================================================
       AFRAME.registerComponent('app-controller', {
         init: function () {
@@ -195,12 +233,10 @@
           
           this.scene2Step = 1; 
           
-          // Menu Principal
           document.querySelector('#btn-launch-scene2').addEventListener('click', () => { this.openScene(2); });
           document.querySelector('#btn-launch-scene3').addEventListener('click', () => { this.openScene(3); });
           document.querySelector('#btn-launch-scene4').addEventListener('click', () => { this.openScene(4); });
 
-          // Scene 2 Logic
           this.year2015 = document.querySelector('#year-2015');
           this.year2020 = document.querySelector('#year-2020');
           this.year2025 = document.querySelector('#year-2025');
@@ -211,7 +247,6 @@
           this.s2BtnPrev.addEventListener('click', () => { if(this.scene2Step > 1) this.goToYear(this.scene2Step - 1); });
           document.querySelector('#s2-btn-close').addEventListener('click', () => { this.openMenu(); });
 
-          // Scene 3 & 4 Close
           document.querySelector('#s3-btn-close').addEventListener('click', () => { this.openMenu(); });
           document.querySelector('#s4-btn-close').addEventListener('click', () => { this.openMenu(); });
         },
@@ -240,7 +275,6 @@
             else if (sceneId === 3) {
                 this.scene3Group.setAttribute('visible', true);
                 this.toggleClickable('.scene3-ui', true);
-                // Le forest-manager génère les arbres automatiquement
             }
             else if (sceneId === 4) {
                 this.scene4Group.setAttribute('visible', true);
@@ -274,7 +308,6 @@
         }
       });
 
-      // --- 5. NAVIGATION HTML ---
       AFRAME.registerComponent('navigate-on-click', {
         schema: { url: {default: ''} },
         init: function () {
@@ -293,6 +326,7 @@
         <img id="scene2-img" src="main_scene/etablissement.png" />
         <img id="scene3-img" src="main_scene/camembert.png" />
         <img id="scene-4-img" src="main_scene/homme_porte.png" />
+        
         <a-asset-item id="student-model" src="assets_scene2/mjo_character_student_school.glb"></a-asset-item>
         
         <a-asset-item id="arbre" src="assets_scene3/arbre.glb"></a-asset-item>
@@ -360,7 +394,6 @@
 
         <a-entity id="scene3-container" visible="false" scale="0.05 0.05 0.05" rotation="0 0 0">
             <a-plane width="30" height="40" color="#1a237e" position="0 5 -5"></a-plane>
-            
             <a-text value="LA FORET DES FORMATIONS" position="0 18 1" align="center" color="#FFF" scale="6 6 6"></a-text>
             
             <a-entity position="0 0 0" forest-manager></a-entity>
@@ -373,11 +406,11 @@
 
         <a-entity id="scene4-container" visible="false" scale="0.05 0.05 0.05" rotation="0 0 0">
             <a-plane width="30" height="40" color="#ddd" position="0 5 -5"></a-plane>
-            <a-text value="REPARTITION PAR DIPLOME" position="0 20 1" align="center" color="#333" scale="6 6 6"></a-text>
+            <a-text value="REPARTITION PAR DIPLOME" position="0 20 1" align="center" color="#333" scale="5.5 5.5 5.5"></a-text>
 
-            <a-entity position="0 3 0" tide-manager></a-entity>
+            <a-entity position="0 6.5 0" tide-manager></a-entity>
 
-            <a-text id="s4-info-text" value="Cliquez sur un diplome" position="0 15 1" align="center" color="#333" scale="8 8 8"></a-text>
+            <a-text id="s4-info-text" value="Cliquez sur un diplome" position="0 17 1" align="center" color="#333" scale="6 6 6"></a-text>
 
             <a-plane id="btn-dip-en" class="scene4-ui" position="-10 -4 2" width="8" height="2" color="#2196F3">
                 <a-text value="Diplome EN" align="center" scale="3 3 3" position="0 0 0.1"></a-text>
