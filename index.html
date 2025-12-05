@@ -9,7 +9,30 @@
 
     <script>
       // =================================================================
-      // 1. GÉNÉRATEUR DE POPULATION (SCÈNE 2) - INCHANGÉ (MJO)
+      // GESTION DU POPUP CRÉDITS (NOUVEAU)
+      // =================================================================
+      AFRAME.registerComponent('credits-handler', {
+        init: function() {
+            const btn = this.el;
+            const popup = document.querySelector('#popup-credits');
+            const closeBtn = document.querySelector('#btn-close-credits');
+
+            // Ouvrir le popup
+            btn.addEventListener('click', () => {
+                popup.setAttribute('visible', true);
+                document.querySelector('#btn-close-credits-plane').classList.add('clickable');
+            });
+
+            // Fermer le popup
+            closeBtn.addEventListener('click', () => {
+                popup.setAttribute('visible', false);
+                document.querySelector('#btn-close-credits-plane').classList.remove('clickable');
+            });
+        }
+      });
+
+      // =================================================================
+      // 1. GÉNÉRATEUR DE POPULATION (SCÈNE 2) - INCHANGÉ
       // =================================================================
       AFRAME.registerComponent('population-generator', {
         schema: {
@@ -39,7 +62,7 @@
       });
 
       // =================================================================
-      // 2. LA FORÊT DES FORMATIONS (SCÈNE 3) - MODIFIÉ (Espacement dynamique)
+      // 2. LA FORÊT DES FORMATIONS (SCÈNE 3) - INCHANGÉ
       // =================================================================
       AFRAME.registerComponent('forest-manager', {
         init: function() {
@@ -47,19 +70,16 @@
 
             const zones = [
                 { 
-                    // NIVEAU 5 (BAC+2) - Gauche
                     count: 48, model: '#arbre', scale: '0.2 0.2 0.2', color: '#4CAF50', 
                     xPos: -8, yPos: 0, width: 5, height: 15, 
                     label: "Niveau 5\n(48 Formations)"
                 },
                 { 
-                    // NIVEAU 6 (BAC+3/4) - Droite
                     count: 37, model: '#arbre', scale: '0.4 0.4 0.4', color: '#FF9800', 
                     xPos: 8, yPos: 0, width: 5, height: 15, 
                     label: "Niveau 6\n(37 Formations)"
                 },
                 { 
-                    // NIVEAU 7 (BAC+5) - Centre
                     count: 5, model: '#arbre', scale: '0.6 0.6 0.6', color: '#9C27B0', 
                     xPos: 0, yPos: 0, width: 5, height: 15, 
                     label: "Niveau 7\n(5 Formations)"
@@ -67,7 +87,6 @@
             ];
 
             zones.forEach(zone => {
-                // Texte (Inchangé)
                 let text = document.createElement('a-text');
                 text.setAttribute('value', zone.label);
                 text.setAttribute('align', 'center');
@@ -76,38 +95,27 @@
                 text.setAttribute('position', {x: zone.xPos, y: 15, z: 2}); 
                 container.appendChild(text);
 
-                // --- NOUVELLE LOGIQUE D'ESPACEMENT ---
-                // On prépare un tableau pour retenir où sont les arbres précédents de cette zone
                 let placedTrees = []; 
-                
-                // On détermine le rayon d'espacement selon le scale
-                // On récupère la valeur numérique du scale (ex: "0.6 0.6 0.6" -> 0.6)
                 let scaleVal = parseFloat(zone.scale.split(' ')[0]);
                 let minDistance = 0;
 
-                // C'est ici qu'on règle l'espacement demandé
-                if (scaleVal >= 1) minDistance = 2.5;      // Gros espace pour les gros arbres
-                else if (scaleVal >= 0.6) minDistance = 1.2; // Espace moyen
-                else minDistance = 0.1;                    // Tout petit (presque rien) pour les petits arbres
+                if (scaleVal >= 1) minDistance = 2.5;      
+                else if (scaleVal >= 0.6) minDistance = 1.2; 
+                else minDistance = 0.1;                    
 
-                // Génération des arbres
                 for(let i=0; i<zone.count; i++) {
                     let tree = document.createElement('a-entity');
-                    
                     let px, py;
                     let validPosition = false;
                     let attempts = 0;
-                    let maxAttempts = 50; // Nombre d'essais max pour trouver une place libre
+                    let maxAttempts = 50; 
 
-                    // Boucle : "Essaie de trouver une place libre"
                     while (!validPosition && attempts < maxAttempts) {
-                        // 1. Position aléatoire (comme avant)
                         px = zone.xPos + (Math.random() - 0.5) * zone.width;
                         py = zone.yPos + (Math.random() - 0.5) * zone.height;
 
-                        // 2. Vérification de distance
                         let collision = false;
-                        if (minDistance > 0.2) { // On ne vérifie que si on veut de l'espace (pas pour les petits scale 0.2)
+                        if (minDistance > 0.2) { 
                             for (let pos of placedTrees) {
                                 let dx = px - pos.x;
                                 let dy = py - pos.y;
@@ -118,17 +126,11 @@
                                 }
                             }
                         }
-
-                        if (!collision) {
-                            validPosition = true;
-                        }
+                        if (!collision) validPosition = true;
                         attempts++;
                     }
-
-                    // On enregistre cette position validée
                     placedTrees.push({x: px, y: py});
 
-                    // Application des attributs (Inchangé)
                     tree.setAttribute('position', {x: px, y: py, z: 0});
                     tree.setAttribute('gltf-model', zone.model);
                     tree.setAttribute('scale', zone.scale);
@@ -140,8 +142,8 @@
         }
       });
 
-      // // =================================================================
-      // 3. LA MARÉE HUMAINE (SCÈNE 4) - ZONE RÉDUITE
+      // =================================================================
+      // 3. LA MARÉE HUMAINE (SCÈNE 4) - INCHANGÉ
       // =================================================================
       AFRAME.registerComponent('tide-manager', {
         init: function() {
@@ -166,14 +168,7 @@
                 ent.setAttribute('gltf-model', '#student'); 
                 ent.setAttribute('scale', '10 10 10'); 
                 
-                // --- MODIFICATION ICI (ZONE DE DÉPART PLUS PETITE) ---
-                // Avant : Largeur 8, Hauteur 30
-                // Maintenant : Largeur 5, Hauteur 14 (beaucoup plus compact)
-                
-                // X entre -11 et -6 (Gauche)
                 let startX = -11 + Math.random() * 5; 
-                
-                // Y entre -7 et +7 (Centré verticalement)
                 let startY = -7 + Math.random() * 14; 
                 
                 ent.setAttribute('position', {x: startX, y: startY, z: 0});
@@ -206,10 +201,8 @@
 
             this.visuals.forEach((ent, index) => {
                 if (index < numToMove) {
-                    // --- MODIFICATION ICI (ZONE D'ARRIVÉE PLUS PETITE AUSSI) ---
-                    // Pour que ça reste joli quand ils bougent à droite
-                    let targetX = 6 + Math.random() * 5;   // X entre 6 et 11
-                    let targetY = -7 + Math.random() * 14; // Y entre -7 et 7
+                    let targetX = 6 + Math.random() * 5; 
+                    let targetY = -7 + Math.random() * 14; 
 
                     ent.setAttribute('animation', `property: position; to: ${targetX} ${targetY} 0; dur: 1500; easing: easeInOutQuad`);
                     ent.setAttribute('scale', '12 12 12'); 
@@ -230,6 +223,7 @@
           this.scene2Group = document.querySelector('#scene2-container');
           this.scene3Group = document.querySelector('#scene3-container');
           this.scene4Group = document.querySelector('#scene4-container');
+          this.popupCredits = document.querySelector('#popup-credits');
           
           this.scene2Step = 1; 
           
@@ -256,11 +250,13 @@
             this.scene2Group.setAttribute('visible', false);
             this.scene3Group.setAttribute('visible', false);
             this.scene4Group.setAttribute('visible', false);
+            this.popupCredits.setAttribute('visible', false);
             
             this.toggleClickable('.menu-item', true);
             this.toggleClickable('.scene2-ui', false);
             this.toggleClickable('.scene3-ui', false);
             this.toggleClickable('.scene4-ui', false);
+            this.toggleClickable('.popup-ui', false);
         },
 
         openScene: function(sceneId) {
@@ -330,11 +326,8 @@
         <img id="titre" src="main_scene/titre.png" />
         <img id="lesFormations" src="main_scene/lesFormations.png" />
         
-        
         <a-asset-item id="student-model" src="assets_scene2/mjo_character_student_school.glb"></a-asset-item>
-        
         <a-asset-item id="arbre" src="assets_scene3/arbre.glb"></a-asset-item>
-
         <a-asset-item id="student" src="assets_scene4/student.glb"></a-asset-item>
       </a-assets>
 
@@ -343,44 +336,49 @@
       <a-entity mindar-image-target="targetIndex: 0">
         
         <a-entity id="main-menu">
-
             <a-plane src="#affiche" position="0 0 0" height="1.552" width="1" rotation="0 0 0"></a-plane>
             
-            <a-image class="clickable menu-item" src="#crédits" navigate-on-click="url: scene1.html"
-                     position="0 0 0" scale="0.25 0.25 0.25">
+            <a-image src="#titre" position="0 0.65 0.01" scale="0.9 0.15 1"></a-image>
+
+            <a-image id="btn-credits" class="clickable menu-item" src="#crédits" 
+                     credits-handler
+                     position="0.38 0.68 0.02" scale="0.25 0.2 1"
+                     animation="property: scale; to: 0.27 0.22 1; dur: 1000; dir: alternate; loop: true">
+            </a-image>
+
+            <a-image class="clickable menu-item" src="#lesFormations" navigate-on-click="url: scene1.html"
+                     position="-0.25 0.35 0.01" scale="0.45 0.4 1">
             </a-image>
 
             <a-image id="btn-launch-scene2" class="clickable menu-item" src="#batiments" 
-                     position="0 0 0" scale="0.25 0.25 0.25"> 
+                     position="0.25 0.35 0.01" scale="0.45 0.4 1"> 
+            </a-image>
+
+            <a-image id="btn-launch-scene4" class="clickable menu-item" src="#evolutionApprentis" 
+                     position="0.1 -0.05 0.01" scale="0.6 0.35 1">
             </a-image>
 
             <a-image id="btn-launch-scene3" class="clickable menu-item" src="#niveau2formation" 
-                     position="0 0 0" scale="0.25 0.25 0.25">
+                     position="-0.25 -0.45 0.01" scale="0.45 0.45 1">
             </a-image>
 
-
-            <a-image id="btn-launch-scene4" class="clickable menu-item" src="#evolutionApprentis" 
-                     position="0 0 0" scale="0.25 0.25 0.25">
+            <a-image src="#type2diplome" class="menu-item"
+                     position="0 -0.68 0.01" scale="1 0.25 1">
             </a-image>
+        </a-entity>
 
-            <a-image class="clickable menu-item" src="#type2diplome"
-                     position="0 0 0" scale="0.25 0.25 0.25">
-            </a-image>
+        <a-entity id="popup-credits" visible="false" position="0 0 0.2">
+            <a-plane color="#000" opacity="0.9" width="0.9" height="0.6"></a-plane>
+            
+            <a-text value="Realise par\nPIERRE FRENZEL\n&\nAELIS PONTET-BRUN" 
+                    align="center" position="0 0.1 0.01" scale="0.8 0.8 0.8"></a-text>
+            <a-text value="ETUDIANTS BUT MMI\n2EME ANNEE" 
+                    align="center" position="0 -0.1 0.01" color="#4CC3D9" scale="0.6 0.6 0.6"></a-text>
 
-            <a-image src="#titre"
-                     position="0 0 0" scale="0.25 0.25 0.25">
-            </a-image>
-
-            <a-image src="#lesFormations"
-                     position="0 0 0" scale="0.25 0.25 0.25">
-            </a-image>
-
-        
-
-
-
-
-
+            <a-entity id="btn-close-credits" position="0 -0.2 0.01">
+                <a-plane id="btn-close-credits-plane" class="popup-ui" color="#D7263D" width="0.3" height="0.1"></a-plane>
+                <a-text value="FERMER" align="center" scale="0.5 0.5 0.5" position="0 0 0.01"></a-text>
+            </a-entity>
         </a-entity>
 
 
@@ -416,7 +414,6 @@
             </a-plane>
         </a-entity>
 
-
         <a-entity id="scene3-container" visible="false" scale="0.05 0.05 0.05" rotation="0 0 0">
             <a-plane width="30" height="40" color="#1a237e" position="0 5 -5"></a-plane>
             <a-text value="LA FORET DES FORMATIONS" position="0 18 1" align="center" color="#FFF" scale="6 6 6"></a-text>
@@ -427,7 +424,6 @@
                 <a-text value="Affiche" align="center" scale="3 3 3" position="0 0 0.1"></a-text>
             </a-plane>
         </a-entity>
-
 
         <a-entity id="scene4-container" visible="false" scale="0.05 0.05 0.05" rotation="0 0 0">
             <a-plane width="30" height="40" color="#ddd" position="0 5 -5"></a-plane>
