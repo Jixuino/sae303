@@ -36,78 +36,86 @@
       });
 
       // =================================================================
-      // 2. GESTIONNAIRE DU PUZZLE (SCÈNE 3)
+      // 2. LA FORÊT DES FORMATIONS (SCÈNE 3 - REMPLACE LE PUZZLE)
       // =================================================================
-      AFRAME.registerComponent('puzzle-manager', {
+      AFRAME.registerComponent('forest-manager', {
         init: function() {
-            const filieres = [
-                {name: "Medical", count: 1156, color: "#4cc3d9"},
-                {name: "Commerce", count: 940, color: "#FFC65D"},
-                {name: "Numerique", count: 484, color: "#7BC8A4"},
-                {name: "Lettres", count: 450, color: "#EF2D5E"},
-                {name: "Industrie", count: 295, color: "#24CAFF"},
-                {name: "Gestion", count: 248, color: "#E6E6E6"},
-                {name: "Tourisme", count: 76, color: "#F16745"},
-                {name: "Art", count: 17, color: "#D7263D"},
-                {name: "Logistique", count: 9, color: "#8E44AD"}
-            ];
-            const totalStudents = 3675;
             const container = this.el;
-            const positions = [
-                {x: -8, y: 10}, {x: 0, y: 10}, {x: 8, y: 10},
-                {x: -8, y: 2},  {x: 0, y: 2},  {x: 8, y: 2},
-                {x: -8, y: -6}, {x: 0, y: -6}, {x: 8, y: -6}
+
+            // Configuration des 3 zones de la forêt
+            const zones = [
+                { 
+                    // NIVEAU 5 (BAC+2) 
+                    count: 48, 
+                    model: '#arbre', 
+                    scale: '0.2 0.2 0.2',
+                    xPos: -10, zPos: -5, width: 12, depth: 15,
+                    label: "Niveau 5\n(48 Formations)"
+                },
+                { 
+                    // NIVEAU 6 (BAC+3/4) 
+                    count: 37, 
+                    model: '#arbre', 
+                    scale: '0.6 0.6 0.6',
+                    xPos: 10, zPos: -5, width: 10, depth: 12,
+                    label: "Niveau 6\n(37 Formations)"
+                },
+                { 
+                    // NIVEAU 7 (BAC+5) 
+                    count: 5, 
+                    model: '#arbre', 
+                    scale: '1 1 1', // Un peu plus grands
+                    xPos: 0, zPos: 5, width: 5, depth: 3,
+                    label: "Niveau 7\n(5 Formations)"
+                }
             ];
 
-            filieres.forEach((f, index) => {
-                let percent = ((f.count / totalStudents) * 100).toFixed(1);
-                let sizeFactor = Math.sqrt(f.count) / 10; 
-                if(sizeFactor < 0.6) sizeFactor = 0.6;
-                if(sizeFactor > 2.5) sizeFactor = 2.5;
-
-                let box = document.createElement('a-box');
-                let targetPos = positions[index];
-                
-                let startX = (Math.random() - 0.5) * 60;
-                let startY = (Math.random() - 0.5) * 60;
-                let startZ = 20 + Math.random() * 20;
-
-                box.setAttribute('position', {x: startX, y: startY, z: startZ});
-                box.setAttribute('color', f.color);
-                box.setAttribute('depth', 2);
-                box.setAttribute('width', 4.5); 
-                box.setAttribute('height', 4.5);
-                box.setAttribute('scale', {x: sizeFactor, y: sizeFactor, z: 1});
-
-                let delay = index * 100;
-                box.setAttribute('animation', `property: position; to: ${targetPos.x} ${targetPos.y} 0; dur: 1500; easing: easeOutElastic; delay: ${delay}`);
-
-                box.classList.add('scene3-piece'); 
-
+            zones.forEach(zone => {
+                // 1. Création du Texte au dessus de la zone
                 let text = document.createElement('a-text');
-                text.setAttribute('value', `${f.name}\n${f.count} (${percent}%)`);
+                text.setAttribute('value', zone.label);
                 text.setAttribute('align', 'center');
-                text.setAttribute('position', '0 0 3'); 
-                text.setAttribute('scale', {x: 2.5/sizeFactor, y: 2.5/sizeFactor, z: 1}); 
-                text.setAttribute('visible', false);
-                box.appendChild(text);
+                text.setAttribute('color', zone.color);
+                text.setAttribute('scale', '8 8 8');
+                text.setAttribute('position', {x: zone.xPos, y: 12, z: zone.zPos}); // Flotte haut
+                container.appendChild(text);
 
-                box.addEventListener('click', function() {
-                    document.querySelectorAll('.scene3-piece').forEach(el => {
-                        el.setAttribute('material', 'opacity', 0.4); 
-                        el.querySelector('a-text').setAttribute('visible', false);
+                // 2. Génération des arbres
+                for(let i=0; i<zone.count; i++) {
+                    let tree = document.createElement('a-entity');
+                    
+                    // Position aléatoire dans la zone définie
+                    let px = zone.xPos + (Math.random() - 0.5) * zone.width;
+                    let pz = zone.zPos + (Math.random() - 0.5) * zone.depth;
+                    
+                    tree.setAttribute('position', {x: px, y: 0, z: pz});
+                    tree.setAttribute('gltf-model', zone.model);
+                    tree.setAttribute('scale', zone.scale);
+                    
+                    // Rotation aléatoire pour le réalisme
+                    tree.setAttribute('rotation', {x: 0, y: Math.random() * 360, z: 0});
+
+                    // 3. Application de la couleur (Hack pour colorer un GLB)
+                    tree.addEventListener('model-loaded', function() {
+                        const obj = tree.getObject3D('mesh');
+                        if (obj) {
+                            obj.traverse(function(node) {
+                                if (node.isMesh) {
+                                    // On force la couleur du matériau
+                                    node.material.color.set(zone.color);
+                                }
+                            });
+                        }
                     });
-                    this.setAttribute('material', 'opacity', 1);
-                    text.setAttribute('visible', true);
-                    this.setAttribute('animation__pop', 'property: position; dir: alternate; dur: 200; to: ' + targetPos.x + ' ' + targetPos.y + ' 2; loop: 1');
-                });
-                container.appendChild(box);
+
+                    container.appendChild(tree);
+                }
             });
         }
       });
 
       // =================================================================
-      // 3. LA MARÉE HUMAINE (SCÈNE 4) - CORRIGÉ
+      // 3. LA MARÉE HUMAINE (SCÈNE 4)
       // =================================================================
       AFRAME.registerComponent('tide-manager', {
         init: function() {
@@ -130,26 +138,13 @@
             // --- CRÉATION DE LA FOULE ---
             for(let i=0; i<this.totalVisuals; i++) {
                 let ent = document.createElement('a-entity');
-                
                 ent.setAttribute('gltf-model', '#student'); 
-                
-                // CORRECTION IMPORTANTE : L'ÉCHELLE
-                // Le container parent est déjà à 0.05.
-
                 ent.setAttribute('scale', '10 10 10'); 
-                
-                // Position aléatoire Gauche
                 let startX = -12 + Math.random() * 8; 
                 let startZ = -10 + Math.random() * 20;
-                
                 ent.setAttribute('position', {x: startX, y: 0, z: startZ});
-                
-                // CORRECTION ROTATION : Si le modèle est couché, il faut peut-être x:90 ou x:0
-                // J'essaie une rotation standard debout.
                 ent.setAttribute('rotation', {x: 0, y: 0, z: 0}); 
-
                 ent.userData = { restX: startX, restZ: startZ };
-                
                 this.container.appendChild(ent);
                 this.visuals.push(ent);
             }
@@ -170,24 +165,17 @@
             let numToMove = Math.round(ratio * this.totalVisuals);
             if(diplomaData.count > 0 && numToMove === 0) numToMove = 1;
 
-            // Update Texte
             let percent = (ratio * 100).toFixed(1);
             this.infoText.setAttribute('value', `${diplomaData.label}\n${diplomaData.count} Etudiants\n(${percent}%)`);
             this.infoText.setAttribute('color', diplomaData.color);
 
-            // Animation
             this.visuals.forEach((ent, index) => {
                 if (index < numToMove) {
-                    // Mouvement vers Droite
                     let targetX = 4 + Math.random() * 8;
                     let targetZ = -10 + Math.random() * 20;
-
                     ent.setAttribute('animation', `property: position; to: ${targetX} 0 ${targetZ}; dur: 1500; easing: easeInOutQuad`);
-                    
-                    // Effet de sélection (Grossit un peu)
                     ent.setAttribute('scale', '10 10 10'); 
                 } else {
-                    // Retour Gauche
                     ent.setAttribute('animation', `property: position; to: ${ent.userData.restX} 0 ${ent.userData.restZ}; dur: 1500; easing: easeInOutQuad`);
                     ent.setAttribute('scale', '10 10 10');
                 }
@@ -196,7 +184,7 @@
       });
 
       // =================================================================
-      // 4. CONTRÔLEUR GLOBAL
+      // 4. CONTRÔLEUR GLOBAL DE L'APPLICATION
       // =================================================================
       AFRAME.registerComponent('app-controller', {
         init: function () {
@@ -212,7 +200,7 @@
           document.querySelector('#btn-launch-scene3').addEventListener('click', () => { this.openScene(3); });
           document.querySelector('#btn-launch-scene4').addEventListener('click', () => { this.openScene(4); });
 
-          // Scene 2
+          // Scene 2 Logic
           this.year2015 = document.querySelector('#year-2015');
           this.year2020 = document.querySelector('#year-2020');
           this.year2025 = document.querySelector('#year-2025');
@@ -223,7 +211,7 @@
           this.s2BtnPrev.addEventListener('click', () => { if(this.scene2Step > 1) this.goToYear(this.scene2Step - 1); });
           document.querySelector('#s2-btn-close').addEventListener('click', () => { this.openMenu(); });
 
-          // Scene 3 & 4
+          // Scene 3 & 4 Close
           document.querySelector('#s3-btn-close').addEventListener('click', () => { this.openMenu(); });
           document.querySelector('#s4-btn-close').addEventListener('click', () => { this.openMenu(); });
         },
@@ -236,7 +224,6 @@
             
             this.toggleClickable('.menu-item', true);
             this.toggleClickable('.scene2-ui', false);
-            this.toggleClickable('.scene3-piece', false); 
             this.toggleClickable('.scene3-ui', false);
             this.toggleClickable('.scene4-ui', false);
         },
@@ -253,7 +240,7 @@
             else if (sceneId === 3) {
                 this.scene3Group.setAttribute('visible', true);
                 this.toggleClickable('.scene3-ui', true);
-                this.toggleClickable('.scene3-piece', true);
+                // Le forest-manager génère les arbres automatiquement
             }
             else if (sceneId === 4) {
                 this.scene4Group.setAttribute('visible', true);
@@ -308,6 +295,8 @@
         <img id="scene-4-img" src="main_scene/homme_porte.png" />
         <a-asset-item id="student-model" src="assets_scene2/mjo_character_student_school.glb"></a-asset-item>
         
+        <a-asset-item id="arbre" src="assets_scene3/arbre.glb"></a-asset-item>
+
         <a-asset-item id="student" src="assets_scene4/student.glb"></a-asset-item>
       </a-assets>
 
@@ -370,10 +359,11 @@
 
 
         <a-entity id="scene3-container" visible="false" scale="0.05 0.05 0.05" rotation="0 0 0">
-            <a-plane width="30" height="40" color="#2c3e50" position="0 5 -5"></a-plane>
-            <a-text value="Le Puzzle des Filieres" position="0 15 1" align="center" color="#FFF" scale="6 6 6"></a-text>
+            <a-plane width="30" height="40" color="#1a237e" position="0 5 -5"></a-plane>
             
-            <a-entity position="0 4 0" puzzle-manager></a-entity>
+            <a-text value="LA FORET DES FORMATIONS" position="0 18 1" align="center" color="#FFF" scale="6 6 6"></a-text>
+            
+            <a-entity position="0 0 0" forest-manager></a-entity>
 
             <a-plane id="s3-btn-close" class="scene3-ui" position="0 -10 2" width="6" height="2" color="#D7263D">
                 <a-text value="Affiche" align="center" scale="3 3 3" position="0 0 0.1"></a-text>
@@ -382,35 +372,34 @@
 
 
         <a-entity id="scene4-container" visible="false" scale="0.05 0.05 0.05" rotation="0 0 0">
-            <a-plane width="30" height="40" color="#111111" position="0 5 -5"></a-plane>
-            
-            <a-text value="REPARTITION PAR DIPLOME" position="0 20 1" align="center" color="#0000" scale="6 6 6"></a-text>
+            <a-plane width="30" height="40" color="#ddd" position="0 5 -5"></a-plane>
+            <a-text value="REPARTITION PAR DIPLOME" position="0 20 1" align="center" color="#333" scale="6 6 6"></a-text>
 
-            <a-entity position="0 5 0" tide-manager></a-entity>
+            <a-entity position="0 3 0" tide-manager></a-entity>
 
-            <a-text id="s4-info-text" value="Cliquez sur un diplome" position="0 15 1" align="center" color="#0000" scale="8 8 8"></a-text>
+            <a-text id="s4-info-text" value="Cliquez sur un diplome" position="0 15 1" align="center" color="#333" scale="8 8 8"></a-text>
 
-            <a-plane id="btn-dip-en" class="scene4-ui" position="-10 -2 2" width="8" height="2" color="#2196F3">
+            <a-plane id="btn-dip-en" class="scene4-ui" position="-10 -4 2" width="8" height="2" color="#2196F3">
                 <a-text value="Diplome EN" align="center" scale="3 3 3" position="0 0 0.1"></a-text>
             </a-plane>
-            <a-plane id="btn-dip-etat" class="scene4-ui" position="0 -2 2" width="8" height="2" color="#F44336">
+            <a-plane id="btn-dip-etat" class="scene4-ui" position="0 -4 2" width="8" height="2" color="#F44336">
                 <a-text value="Diplome Etat" align="center" scale="3 3 3" position="0 0 0.1"></a-text>
             </a-plane>
-            <a-plane id="btn-rncp" class="scene4-ui" position="10 -2 2" width="8" height="2" color="#4CAF50">
+            <a-plane id="btn-rncp" class="scene4-ui" position="10 -4 2" width="8" height="2" color="#4CAF50">
                 <a-text value="Titre RNCP" align="center" scale="3 3 3" position="0 0 0.1"></a-text>
             </a-plane>
 
-            <a-plane id="btn-certif" class="scene4-ui" position="-10 -5 2" width="8" height="2" color="#FFEB3B">
+            <a-plane id="btn-certif" class="scene4-ui" position="-10 -8 2" width="8" height="2" color="#FFEB3B">
                 <a-text value="Certificat" align="center" scale="3 3 3" position="0 0 0.1" color="black"></a-text>
             </a-plane>
-            <a-plane id="btn-certif-pro" class="scene4-ui" position="0 -5 2" width="8" height="2" color="#FF9800">
+            <a-plane id="btn-certif-pro" class="scene4-ui" position="0 -8 2" width="8" height="2" color="#FF9800">
                 <a-text value="Certif Pro" align="center" scale="3 3 3" position="0 0 0.1"></a-text>
             </a-plane>
-            <a-plane id="btn-titre-pro" class="scene4-ui" position="10 -5 2" width="8" height="2" color="#9C27B0">
+            <a-plane id="btn-titre-pro" class="scene4-ui" position="10 -8 2" width="8" height="2" color="#9C27B0">
                 <a-text value="Titre Pro" align="center" scale="3 3 3" position="0 0 0.1"></a-text>
             </a-plane>
 
-            <a-plane id="s4-btn-close" class="scene4-ui" position="0 -10 2" width="6" height="2" color="#D7263D">
+            <a-plane id="s4-btn-close" class="scene4-ui" position="0 -12 2" width="6" height="2" color="#D7263D">
                 <a-text value="Affiche" align="center" scale="3 3 3" position="0 0 0.1"></a-text>
             </a-plane>
         </a-entity>
