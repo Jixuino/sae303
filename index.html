@@ -9,7 +9,66 @@
 
     <script>
       // =================================================================
-      // GESTION DU POPUP CRÉDITS (NOUVEAU)
+      // GESTION DES BALLONS (NOUVEAU - BATIMENTS)
+      // =================================================================
+      AFRAME.registerComponent('balloon-manager', {
+        init: function() {
+            const el = this.el;
+            const data = [
+                { color: '#e74c3c', count: 10 }, // ROUGE - Privé hors contrat
+                { color: '#3498db', count: 8 },  // BLEU - Public
+                { color: '#2ecc71', count: 3 }   // VERT - Privé sous contrat
+            ];
+
+            data.forEach(type => {
+                for(let i=0; i<type.count; i++) {
+                    let container = document.createElement('a-entity');
+                    let posX = (Math.random() - 0.5) * 12;
+                    let posY = 2 + Math.random() * 8; 
+                    let posZ = (Math.random() - 0.5) * 4;
+
+                    container.setAttribute('position', {x: posX, y: posY, z: posZ});
+
+                    // Ballon Low-Poly
+                    let balloon = document.createElement('a-dodecahedron');
+                    balloon.setAttribute('color', type.color);
+                    balloon.setAttribute('radius', 0.5);
+                    balloon.setAttribute('detail', 0);
+                    balloon.setAttribute('shadow', 'cast: true; receive: true');
+
+                    // Noeud
+                    let knot = document.createElement('a-cone');
+                    knot.setAttribute('color', type.color);
+                    knot.setAttribute('radius-bottom', 0.1);
+                    knot.setAttribute('radius-top', 0);
+                    knot.setAttribute('height', 0.2);
+                    knot.setAttribute('position', '0 -0.5 0');
+                    knot.setAttribute('rotation', '180 0 0');
+
+                    // Corde
+                    let string = document.createElement('a-cylinder');
+                    string.setAttribute('color', '#ffffff');
+                    string.setAttribute('height', 3);
+                    string.setAttribute('radius', 0.005);
+                    string.setAttribute('position', '0 -2 0');
+                    string.setAttribute('opacity', 0.6);
+
+                    // Animation
+                    let dur = 2000 + Math.random() * 2000;
+                    let floatTo = posY + 0.5;
+                    container.setAttribute('animation', `property: position; to: ${posX} ${floatTo} ${posZ}; dir: alternate; dur: ${dur}; loop: true; easing: easeInOutSine`);
+
+                    container.appendChild(balloon);
+                    container.appendChild(knot);
+                    container.appendChild(string);
+                    el.appendChild(container);
+                }
+            });
+        }
+      });
+
+      // =================================================================
+      // POPUP CRÉDITS
       // =================================================================
       AFRAME.registerComponent('credits-handler', {
         init: function() {
@@ -17,13 +76,10 @@
             const popup = document.querySelector('#popup-credits');
             const closeBtn = document.querySelector('#btn-close-credits');
 
-            // Ouvrir le popup
             btn.addEventListener('click', () => {
                 popup.setAttribute('visible', true);
                 document.querySelector('#btn-close-credits-plane').classList.add('clickable');
             });
-
-            // Fermer le popup
             closeBtn.addEventListener('click', () => {
                 popup.setAttribute('visible', false);
                 document.querySelector('#btn-close-credits-plane').classList.remove('clickable');
@@ -32,7 +88,7 @@
       });
 
       // =================================================================
-      // 1. GÉNÉRATEUR DE POPULATION (SCÈNE 2) - INCHANGÉ
+      // SCÈNE 2 : GÉNÉRATEUR DE POPULATION (RESTAURO)
       // =================================================================
       AFRAME.registerComponent('population-generator', {
         schema: {
@@ -48,44 +104,26 @@
             let avatar = document.createElement('a-entity');
             let posX = (Math.random() - 0.5) * data.widthSpread;
             let posZ = data.zStart + Math.random() * (data.zEnd - data.zStart);
-            
             avatar.setAttribute('position', {x: posX, y: 0, z: posZ});
             avatar.setAttribute('gltf-model', '#student-model'); 
             avatar.setAttribute('scale', data.modelScale);
-            
-            let randomRot = Math.random() * 360;
-            avatar.setAttribute('rotation', {x: 0, y: randomRot, z: 0});
-            
+            avatar.setAttribute('rotation', {x: 0, y: Math.random() * 360, z: 0});
             this.el.appendChild(avatar);
           }
         }
       });
 
       // =================================================================
-      // 2. LA FORÊT DES FORMATIONS (SCÈNE 3) - INCHANGÉ
+      // SCÈNE 3 : FORÊT
       // =================================================================
       AFRAME.registerComponent('forest-manager', {
         init: function() {
             const container = this.el;
-
             const zones = [
-                { 
-                    count: 48, model: '#arbre', scale: '0.2 0.2 0.2', color: '#4CAF50', 
-                    xPos: -8, yPos: 0, width: 5, height: 15, 
-                    label: "Niveau 5\n(48 Formations)"
-                },
-                { 
-                    count: 37, model: '#arbre', scale: '0.4 0.4 0.4', color: '#FF9800', 
-                    xPos: 8, yPos: 0, width: 5, height: 15, 
-                    label: "Niveau 6\n(37 Formations)"
-                },
-                { 
-                    count: 5, model: '#arbre', scale: '0.6 0.6 0.6', color: '#9C27B0', 
-                    xPos: 0, yPos: 0, width: 5, height: 15, 
-                    label: "Niveau 7\n(5 Formations)"
-                }
+                { count: 48, model: '#arbre', scale: '0.2 0.2 0.2', color: '#4CAF50', xPos: -8, yPos: 0, width: 5, height: 15, label: "Niveau 5\n(48 Formations)" },
+                { count: 37, model: '#arbre', scale: '0.4 0.4 0.4', color: '#FF9800', xPos: 8, yPos: 0, width: 5, height: 15, label: "Niveau 6\n(37 Formations)" },
+                { count: 5, model: '#arbre', scale: '0.6 0.6 0.6', color: '#9C27B0', xPos: 0, yPos: 0, width: 5, height: 15, label: "Niveau 7\n(5 Formations)" }
             ];
-
             zones.forEach(zone => {
                 let text = document.createElement('a-text');
                 text.setAttribute('value', zone.label);
@@ -97,45 +135,28 @@
 
                 let placedTrees = []; 
                 let scaleVal = parseFloat(zone.scale.split(' ')[0]);
-                let minDistance = 0;
-
-                if (scaleVal >= 1) minDistance = 2.5;      
-                else if (scaleVal >= 0.6) minDistance = 1.2; 
-                else minDistance = 0.1;                    
+                let minDistance = (scaleVal >= 1) ? 2.5 : (scaleVal >= 0.6) ? 1.2 : 0.1;
 
                 for(let i=0; i<zone.count; i++) {
                     let tree = document.createElement('a-entity');
-                    let px, py;
-                    let validPosition = false;
-                    let attempts = 0;
-                    let maxAttempts = 50; 
-
-                    while (!validPosition && attempts < maxAttempts) {
+                    let px, py, validPosition = false, attempts = 0;
+                    while (!validPosition && attempts < 50) {
                         px = zone.xPos + (Math.random() - 0.5) * zone.width;
                         py = zone.yPos + (Math.random() - 0.5) * zone.height;
-
                         let collision = false;
                         if (minDistance > 0.2) { 
                             for (let pos of placedTrees) {
-                                let dx = px - pos.x;
-                                let dy = py - pos.y;
-                                let distance = Math.sqrt(dx*dx + dy*dy);
-                                if (distance < minDistance) {
-                                    collision = true;
-                                    break;
-                                }
+                                if (Math.sqrt(Math.pow(px - pos.x, 2) + Math.pow(py - pos.y, 2)) < minDistance) { collision = true; break; }
                             }
                         }
                         if (!collision) validPosition = true;
                         attempts++;
                     }
                     placedTrees.push({x: px, y: py});
-
                     tree.setAttribute('position', {x: px, y: py, z: 0});
                     tree.setAttribute('gltf-model', zone.model);
                     tree.setAttribute('scale', zone.scale);
                     tree.setAttribute('rotation', {x: 90, y: 0, z: 0});
-
                     container.appendChild(tree);
                 }
             });
@@ -143,7 +164,7 @@
       });
 
       // =================================================================
-      // 3. LA MARÉE HUMAINE (SCÈNE 4) - INCHANGÉ
+      // SCÈNE 4 : MARÉE
       // =================================================================
       AFRAME.registerComponent('tide-manager', {
         init: function() {
@@ -151,7 +172,6 @@
             this.visuals = []; 
             this.container = this.el;
             this.infoText = document.querySelector('#s4-info-text');
-
             this.diplomas = [
                 {id: "btn-dip-en", label: "Diplome EN", count: 2665, color: "#2196F3"}, 
                 {id: "btn-dip-etat", label: "Diplome Etat", count: 453, color: "#F44336"}, 
@@ -160,50 +180,35 @@
                 {id: "btn-certif-pro", label: "Certificat Pro", count: 68, color: "#FF9800"}, 
                 {id: "btn-titre-pro", label: "Titre Pro", count: 12, color: "#9C27B0"} 
             ];
-            
             const totalRealStudents = 3675;
-
             for(let i=0; i<this.totalVisuals; i++) {
                 let ent = document.createElement('a-entity');
                 ent.setAttribute('gltf-model', '#student'); 
                 ent.setAttribute('scale', '10 10 10'); 
-                
                 let startX = -11 + Math.random() * 5; 
                 let startY = -7 + Math.random() * 14; 
-                
                 ent.setAttribute('position', {x: startX, y: startY, z: 0});
                 ent.setAttribute('rotation', {x: 90, y: 0, z: 0}); 
-
                 ent.userData = { restX: startX, restY: startY };
-                
                 this.container.appendChild(ent);
                 this.visuals.push(ent);
             }
-
             this.diplomas.forEach(dip => {
                 let btn = document.querySelector(`#${dip.id}`);
-                if(btn) {
-                    btn.addEventListener('click', () => {
-                        this.activateTide(dip, totalRealStudents);
-                    });
-                }
+                if(btn) btn.addEventListener('click', () => { this.activateTide(dip, totalRealStudents); });
             });
         },
-
         activateTide: function(diplomaData, total) {
             let ratio = diplomaData.count / total;
             let numToMove = Math.round(ratio * this.totalVisuals);
             if(diplomaData.count > 0 && numToMove === 0) numToMove = 1;
-
             let percent = (ratio * 100).toFixed(1);
             this.infoText.setAttribute('value', `${diplomaData.label}\n${diplomaData.count} Etudiants\n(${percent}%)`);
             this.infoText.setAttribute('color', diplomaData.color);
-
             this.visuals.forEach((ent, index) => {
                 if (index < numToMove) {
                     let targetX = 6 + Math.random() * 5; 
                     let targetY = -7 + Math.random() * 14; 
-
                     ent.setAttribute('animation', `property: position; to: ${targetX} ${targetY} 0; dur: 1500; easing: easeInOutQuad`);
                     ent.setAttribute('scale', '12 12 12'); 
                 } else {
@@ -215,7 +220,7 @@
       });
 
       // =================================================================
-      // 4. CONTRÔLEUR GLOBAL - INCHANGÉ
+      // CONTRÔLEUR GLOBAL
       // =================================================================
       AFRAME.registerComponent('app-controller', {
         init: function () {
@@ -223,14 +228,18 @@
           this.scene2Group = document.querySelector('#scene2-container');
           this.scene3Group = document.querySelector('#scene3-container');
           this.scene4Group = document.querySelector('#scene4-container');
+          this.sceneBalloonsGroup = document.querySelector('#scene-balloons-container');
           this.popupCredits = document.querySelector('#popup-credits');
           
           this.scene2Step = 1; 
-          
+
+          // Listeners Menu
           document.querySelector('#btn-launch-scene2').addEventListener('click', () => { this.openScene(2); });
           document.querySelector('#btn-launch-scene3').addEventListener('click', () => { this.openScene(3); });
           document.querySelector('#btn-launch-scene4').addEventListener('click', () => { this.openScene(4); });
+          document.querySelector('#btn-launch-balloons').addEventListener('click', () => { this.openScene('balloons'); });
 
+          // Scene 2 (Population) controls
           this.year2015 = document.querySelector('#year-2015');
           this.year2020 = document.querySelector('#year-2020');
           this.year2025 = document.querySelector('#year-2025');
@@ -241,8 +250,10 @@
           this.s2BtnPrev.addEventListener('click', () => { if(this.scene2Step > 1) this.goToYear(this.scene2Step - 1); });
           document.querySelector('#s2-btn-close').addEventListener('click', () => { this.openMenu(); });
 
+          // Autres fermetures
           document.querySelector('#s3-btn-close').addEventListener('click', () => { this.openMenu(); });
           document.querySelector('#s4-btn-close').addEventListener('click', () => { this.openMenu(); });
+          document.querySelector('#s-balloons-btn-close').addEventListener('click', () => { this.openMenu(); });
         },
 
         openMenu: function() {
@@ -250,12 +261,14 @@
             this.scene2Group.setAttribute('visible', false);
             this.scene3Group.setAttribute('visible', false);
             this.scene4Group.setAttribute('visible', false);
+            this.sceneBalloonsGroup.setAttribute('visible', false);
             this.popupCredits.setAttribute('visible', false);
             
             this.toggleClickable('.menu-item', true);
             this.toggleClickable('.scene2-ui', false);
             this.toggleClickable('.scene3-ui', false);
             this.toggleClickable('.scene4-ui', false);
+            this.toggleClickable('.balloons-ui', false);
             this.toggleClickable('.popup-ui', false);
         },
 
@@ -276,6 +289,10 @@
                 this.scene4Group.setAttribute('visible', true);
                 this.toggleClickable('.scene4-ui', true);
             }
+            else if (sceneId === 'balloons') {
+                this.sceneBalloonsGroup.setAttribute('visible', true);
+                this.toggleClickable('.balloons-ui', true);
+            }
         },
 
         goToYear: function(step) {
@@ -283,7 +300,6 @@
           this.year2015.setAttribute('visible', false);
           this.year2020.setAttribute('visible', false);
           this.year2025.setAttribute('visible', false);
-
           if (step === 1) this.year2015.setAttribute('visible', true);
           if (step === 2) this.year2020.setAttribute('visible', true);
           if (step === 3) this.year2025.setAttribute('visible', true);
@@ -324,7 +340,6 @@
         <img id="evolutionApprentis" src="main_scene/evolutionApprentis.png" />
         <img id="type2diplome" src="main_scene/type2diplome.png" />
         <img id="lesFormations" src="main_scene/lesFormations.png" />
-        
         <a-asset-item id="student-model" src="assets_scene2/mjo_character_student_school.glb"></a-asset-item>
         <a-asset-item id="arbre" src="assets_scene3/arbre.glb"></a-asset-item>
         <a-asset-item id="student" src="assets_scene4/student.glb"></a-asset-item>
@@ -348,15 +363,12 @@
                      animation="property: scale; to: 0.50 0.28 1; dur: 1000; dir: alternate; loop: true">
             </a-image>
 
-            
-
-            <a-image src="#batiments" 
+            <a-image id="btn-launch-balloons" class="clickable menu-item" src="#batiments" 
                      position="0.30 0.20 0.01" scale="0.38 0.33 1"
                      animation="property: scale; to: 0.42 0.36 1; dur: 1000; dir: alternate; loop: true">
             </a-image>
-
             
-            <a-image  id="btn-launch-scene2" class="clickable menu-item" src="#evolutionApprentis" 
+            <a-image id="btn-launch-scene2" class="clickable menu-item" src="#evolutionApprentis" 
                      position="0.3 -0.17 0.01" scale="0.30 0.20 1"
                      animation="property: scale; to: 0.35 0.24 1; dur: 1000; dir: alternate; loop: true">
             </a-image>
@@ -374,40 +386,52 @@
 
         <a-entity id="popup-credits" visible="false" position="0 0 0.2">
             <a-plane color="#000" opacity="0.9" width="0.9" height="0.6"></a-plane>
-            
-            <a-text value="Realise par\nPIERRE FRENZEL\n&\nAELIS PONTET-BRUN" 
-                    align="center" position="0 0.1 0.01" scale="0.2 0.2 0.2"></a-text>
-            <a-text value="ETUDIANTS BUT MMI\n2EME ANNEE" 
-                    align="center" position="0 -0.1 0.01" color="#4CC3D9" scale="0.2 0.2 0.2"></a-text>
-
+            <a-text value="Realise par\nPIERRE FRENZEL\n&\nAELIS PONTET-BRUN" align="center" position="0 0.1 0.01" scale="0.2 0.2 0.2"></a-text>
+            <a-text value="ETUDIANTS BUT MMI\n2EME ANNEE" align="center" position="0 -0.1 0.01" color="#4CC3D9" scale="0.2 0.2 0.2"></a-text>
             <a-entity id="btn-close-credits" position="0 -0.2 0.01">
                 <a-plane id="btn-close-credits-plane" class="popup-ui" color="#D7263D" width="0.3" height="0.1"></a-plane>
                 <a-text value="FERMER" align="center" scale="0.2 0.2 0.2" position="0 0 0.01"></a-text>
             </a-entity>
         </a-entity>
 
+        <a-entity id="scene-balloons-container" visible="false" scale="0.05 0.05 0.05" rotation="0 0 0">
+            <a-plane width="30" height="40" color="#111" position="0 5 -5" opacity="0.8"></a-plane>
+            <a-text value="LE CIEL DES ETABLISSEMENTS" position="0 15 0" align="center" color="#FFF" scale="6 6 6"></a-text>
+            
+            <a-entity position="0 0 0" balloon-manager></a-entity>
+
+            <a-entity position="0 -5 2">
+                <a-plane color="#FFF" width="25" height="8" position="0 2 0"></a-plane>
+                <a-plane color="#e74c3c" width="2" height="2" position="-8 2 0.1"></a-plane>
+                <a-text value="Prive Hors Contrat" color="#333" position="-6 2 0.1" scale="4 4 4" align="left"></a-text>
+                <a-plane color="#3498db" width="2" height="2" position="-8 -0.5 0.1"></a-plane>
+                <a-text value="Public" color="#333" position="-6 -0.5 0.1" scale="4 4 4" align="left"></a-text>
+                <a-plane color="#2ecc71" width="2" height="2" position="2 -0.5 0.1"></a-plane>
+                <a-text value="Prive Sous Contrat" color="#333" position="4 -0.5 0.1" scale="4 4 4" align="left"></a-text>
+            </a-entity>
+
+            <a-plane id="s-balloons-btn-close" class="balloons-ui" position="0 -10 2" width="8" height="3" color="#D7263D">
+                <a-text value="RETOUR AFFICHE" align="center" scale="3 3 3" position="0 0 0.1"></a-text>
+            </a-plane>
+        </a-entity>
 
         <a-entity id="scene2-container" visible="false" scale="0.05 0.05 0.05" rotation="0 0 0">
             <a-plane width="30" height="40" color="#111" position="0 5 -5"></a-plane>
-
             <a-entity id="year-2015" visible="false">
                 <a-entity position="0 1 0" population-generator="count: 15; zStart: 0; zEnd: -10; widthSpread: 10; modelScale: 0.1 0.1 0.1" rotation="90 0 0"></a-entity>
                 <a-text value="2015" position="0 -3 1" align="center" color="#FFF" scale="8 8 8"></a-text>
                 <a-text value="78 Apprentis" position="0 -5 1" align="center" color="#aaa" scale="4 4 4"></a-text>
             </a-entity>
-
             <a-entity id="year-2020" visible="false">
                 <a-entity position="0 1 0" population-generator="count: 60; zStart: 0; zEnd: -15; widthSpread: 12; modelScale: 0.1 0.1 0.1" rotation="90 0 0"></a-entity>
                 <a-text value="2020" position="0 -3 1" align="center" color="#FFF" scale="8 8 8"></a-text>
                 <a-text value="153 Apprentis" position="0 -5 1" align="center" color="#aaa" scale="4 4 4"></a-text>
             </a-entity>
-
             <a-entity id="year-2025" visible="false">
                 <a-entity position="0 1 0" population-generator="count: 200; zStart: 0; zEnd: -20; widthSpread: 20; modelScale: 0.1 0.1 0.1" rotation="90 0 0"></a-entity>
                 <a-text value="2025" position="0 -3 1" align="center" color="#F00" scale="10 10 10"></a-text>
                 <a-text value="928 APPRENTIS !" position="0 -5 1" align="center" color="#F00" scale="5 5 5"></a-text>
             </a-entity>
-
             <a-plane id="s2-btn-prev" class="scene2-ui" position="-8 -10 2" width="5" height="2.5" color="#333">
                 <a-text value="< RETOUR" align="center" scale="3 3 3" position="0 0 0.1"></a-text>
             </a-plane>
@@ -422,9 +446,7 @@
         <a-entity id="scene3-container" visible="false" scale="0.05 0.05 0.05" rotation="0 0 0">
             <a-plane width="30" height="40" color="#1a237e" position="0 5 -5"></a-plane>
             <a-text value="LA FORET DES FORMATIONS" position="0 18 1" align="center" color="#FFF" scale="6 6 6"></a-text>
-            
             <a-entity position="0 0 0" forest-manager></a-entity>
-
             <a-plane id="s3-btn-close" class="scene3-ui" position="0 -10 2" width="6" height="2" color="#D7263D">
                 <a-text value="Affiche" align="center" scale="3 3 3" position="0 0 0.1"></a-text>
             </a-plane>
@@ -433,11 +455,9 @@
         <a-entity id="scene4-container" visible="false" scale="0.05 0.05 0.05" rotation="0 0 0">
             <a-plane width="30" height="40" color="#ddd" position="0 5 -5"></a-plane>
             <a-text value="REPARTITION PAR DIPLOME" position="0 20 1" align="center" color="#333" scale="5.5 5.5 5.5"></a-text>
-
             <a-entity position="0 6.5 0" tide-manager></a-entity>
-
             <a-text id="s4-info-text" value="Cliquez sur un diplome" position="0 17 1" align="center" color="#333" scale="6 6 6"></a-text>
-
+            
             <a-plane id="btn-dip-en" class="scene4-ui" position="-10 -4 2" width="8" height="2" color="#2196F3">
                 <a-text value="Diplome EN" align="center" scale="3 3 3" position="0 0 0.1"></a-text>
             </a-plane>
@@ -447,7 +467,6 @@
             <a-plane id="btn-rncp" class="scene4-ui" position="10 -4 2" width="8" height="2" color="#4CAF50">
                 <a-text value="Titre RNCP" align="center" scale="3 3 3" position="0 0 0.1"></a-text>
             </a-plane>
-
             <a-plane id="btn-certif" class="scene4-ui" position="-10 -8 2" width="8" height="2" color="#FFEB3B">
                 <a-text value="Certificat" align="center" scale="3 3 3" position="0 0 0.1" color="black"></a-text>
             </a-plane>
@@ -457,7 +476,6 @@
             <a-plane id="btn-titre-pro" class="scene4-ui" position="10 -8 2" width="8" height="2" color="#9C27B0">
                 <a-text value="Titre Pro" align="center" scale="3 3 3" position="0 0 0.1"></a-text>
             </a-plane>
-
             <a-plane id="s4-btn-close" class="scene4-ui" position="0 -12 2" width="6" height="2" color="#D7263D">
                 <a-text value="Affiche" align="center" scale="3 3 3" position="0 0 0.1"></a-text>
             </a-plane>
