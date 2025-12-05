@@ -323,7 +323,6 @@
         <img id="niveau2formation" src="main_scene/niveau2formation.png" />
         <img id="evolutionApprentis" src="main_scene/evolutionApprentis.png" />
         <img id="type2diplome" src="main_scene/type2diplome.png" />
-        <img id="titre" src="main_scene/titre.png" />
         <img id="lesFormations" src="main_scene/lesFormations.png" />
         
         <a-asset-item id="student-model" src="assets_scene2/mjo_character_student_school.glb"></a-asset-item>
@@ -337,33 +336,39 @@
         
         <a-entity id="main-menu">
             <a-plane src="#affiche" position="0 0 0" height="1.552" width="1" rotation="0 0 0"></a-plane>
-            
-            <a-image src="#titre" position="0 0.65 0.01" scale="0.9 0.15 1"></a-image>
 
             <a-image id="btn-credits" class="clickable menu-item" src="#crédits" 
                      credits-handler
-                     position="0.38 0.68 0.02" scale="0.25 0.2 1"
-                     animation="property: scale; to: 0.27 0.22 1; dur: 1000; dir: alternate; loop: true">
+                     position="0.38 0.55 0.02" scale="0.18 0.18 1"
+                     animation="property: scale; to: 0.23 0.23 1; dur: 1000; dir: alternate; loop: true">
             </a-image>
 
             <a-image class="clickable menu-item" src="#lesFormations" navigate-on-click="url: scene1.html"
-                     position="-0.25 0.35 0.01" scale="0.45 0.4 1">
+                     position="-0.25 0.25 0.01" scale="0.45 0.25 1"
+                     animation="property: scale; to: 0.50 0.28 1; dur: 1000; dir: alternate; loop: true">
             </a-image>
 
-            <a-image id="btn-launch-scene2" class="clickable menu-item" src="#batiments" 
-                     position="0.25 0.35 0.01" scale="0.45 0.4 1"> 
+            
+
+            <a-image src="#batiments" 
+                     position="0.30 0.20 0.01" scale="0.38 0.33 1"
+                     animation="property: scale; to: 0.42 0.36 1; dur: 1000; dir: alternate; loop: true">
             </a-image>
 
-            <a-image id="btn-launch-scene4" class="clickable menu-item" src="#evolutionApprentis" 
-                     position="0.1 -0.05 0.01" scale="0.6 0.35 1">
+            
+            <a-image  id="btn-launch-scene2" class="clickable menu-item" src="#evolutionApprentis" 
+                     position="0.3 -0.17 0.01" scale="0.30 0.20 1"
+                     animation="property: scale; to: 0.35 0.24 1; dur: 1000; dir: alternate; loop: true">
             </a-image>
 
             <a-image id="btn-launch-scene3" class="clickable menu-item" src="#niveau2formation" 
-                     position="-0.25 -0.45 0.01" scale="0.45 0.45 1">
+                     position="-0.24 -0.44 0.01" scale="0.18 0.18 1"
+                     animation="property: scale; to: 0.22 0.22 1; dur: 1000; dir: alternate; loop: true">
             </a-image>
 
-            <a-image src="#type2diplome" class="menu-item"
-                     position="0 -0.68 0.01" scale="1 0.25 1">
+            <a-image id="btn-launch-scene4" class="clickable menu-item" src="#type2diplome"
+                     position="0.3 -0.435 0.01" scale="0.25 0.25 1"
+                     animation="property: scale; to: 0.30 0.30 1; dur: 1000; dir: alternate; loop: true">
             </a-image>
         </a-entity>
 
