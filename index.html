@@ -322,10 +322,14 @@
       
       <a-assets>
         <img id="affiche" src="main_scene/affiche_fond.png" />
-        <img id="scene1-img" src="main_scene/crédits.png" />
-        <img id="scene2-img" src="main_scene/batiments.png" />
-        <img id="scene3-img" src="main_scene/niveau2formation.png" />
-        <img id="scene-4-img" src="main_scene/evolutionApprentis.png" />
+        <img id="crédits" src="main_scene/crédits.png" />
+        <img id="batiments" src="main_scene/batiments.png" />
+        <img id="niveau2formation" src="main_scene/niveau2formation.png" />
+        <img id="evolutionApprentis" src="main_scene/evolutionApprentis.png" />
+        <img id="type2diplome" src="main_scene/type2diplome.png" />
+        <img id="titre" src="main_scene/titre.png" />
+        <img id="lesFormations" src="main_scene/lesFormations.png" />
+        
         
         <a-asset-item id="student-model" src="assets_scene2/mjo_character_student_school.glb"></a-asset-item>
         
@@ -339,23 +343,44 @@
       <a-entity mindar-image-target="targetIndex: 0">
         
         <a-entity id="main-menu">
+
             <a-plane src="#affiche" position="0 0 0" height="1.552" width="1" rotation="0 0 0"></a-plane>
             
-            <a-image class="clickable menu-item" src="#scene1-img" navigate-on-click="url: scene1.html"
-                     position="-0.35 0 0.1" scale="0.25 0.25 0.25"
-                     animation="property: position; to: -0.35 0.1 0.1; dur: 1000; dir: alternate; loop: true"></a-image>
+            <a-image class="clickable menu-item" src="#crédits" navigate-on-click="url: scene1.html"
+                     position="0 0 0" scale="0.20 0.20 0.20">
+            </a-image>
 
-            <a-image id="btn-launch-scene2" class="clickable menu-item" src="#scene2-img" 
-                     position="0 0 0.1" scale="0.25 0.25 0.25"
-                     animation="property: position; to: 0 0.1 0.1; dur: 1000; dir: alternate; loop: true"></a-image>
+            <a-image id="btn-launch-scene2" class="clickable menu-item" src="#batiments" 
+                     position="0 0 0" scale="0.20 0.20 0.20"> 
+            </a-image>
 
-            <a-image id="btn-launch-scene3" class="clickable menu-item" src="#scene3-img" 
-                     position="0.35 0 0.1" scale="0.25 0.25 0.25"
-                     animation="property: position; to: 0.35 0.1 0.1; dur: 1000; dir: alternate; loop: true"></a-image>
+            <a-image id="btn-launch-scene3" class="clickable menu-item" src="#niveau2formation" 
+                     position="0 0 0" scale="0.25 0.25 0.25">
+            </a-image>
 
-            <a-image id="btn-launch-scene4" class="clickable menu-item" src="#scene-4-img" 
-                     position="0.7 0 0.1" scale="0.25 0.25 0.25"
-                     animation="property: position; to: 0.7 0.1 0.1; dur: 1000; dir: alternate; loop: true"></a-image>
+
+            <a-image id="btn-launch-scene4" class="clickable menu-item" src="#evolutionApprentis" 
+                     position="0 0 0" scale="0.25 0.25 0.25">
+            </a-image>
+
+            <a-image class="clickable menu-item" src="#type2diplome"
+                     position="0 0 0" scale="0.25 0.25 0.25">
+            </a-image>
+
+            <a-image src="#titre"
+                     position="0 0 0" scale="0.25 0.25 0.25">
+            </a-image>
+
+            <a-image src="#lesFormations"
+                     position="0 0 0" scale="0.60 0.30 0.30">
+            </a-image>
+
+        
+
+
+
+
+
         </a-entity>
 
 
